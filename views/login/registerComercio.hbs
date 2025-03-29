@@ -1,0 +1,50 @@
+<div class="container mt-5">
+  <h1>Registro Comercio</h1>
+  {{#if error}}
+    <div class="alert alert-danger">{{error}}</div>
+  {{/if}}
+  <form action="/registerComercio" method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+      <label>Nombre del Comercio</label>
+      <input type="text" name="nombre_comercio" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label>Teléfono</label>
+      <input type="text" name="telefono" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label>Correo</label>
+      <input type="email" name="correo" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label>Logo del Comercio</label>
+      <input type="file" name="logo" class="form-control">
+    </div>
+    <div class="form-group">
+      <label>Hora de Apertura</label>
+      <input type="time" name="hora_apertura" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label>Hora de Cierre</label>
+      <input type="time" name="hora_cierre" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label>Tipo de Comercio</label>
+      <select name="id_tipo_comercio" class="form-control" required>
+        <option value="">Seleccione...</option>
+        {{#each tipos}}
+          <option value="{{this.id}}">{{this.nombre}}</option>
+        {{/each}}
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Contraseña</label>
+      <input type="password" name="password" class="form-control" required>
+    </div>
+    <div class="form-group">
+      <label>Confirmar Contraseña</label>
+      <input type="password" name="confirmPassword" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Registrarse</button>
+  </form>
+</div>
