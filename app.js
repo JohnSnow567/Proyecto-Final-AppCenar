@@ -3,6 +3,7 @@ const session = require('express-session');
 const path = require('path');
 const exphbs = require('express-handlebars');
 const app = express();
+const deliveryRoutes = require('./routes/delivery/deliveryRoutes');
 
 // Importar modelo (inicializar Sequelize y sincronizar la BD si se desea)
 const db = require('./models');
@@ -33,6 +34,7 @@ app.set('views', path.join(__dirname, 'views'));
 // Rutas
 const authRoutes = require('./routes/authroutes');
 app.use('/', authRoutes);
+app.use('/delivery', deliveryRoutes); // Agregado para rutas de delivery
 
 // Ruta raíz redirige a login
 app.get('/', (req, res) => {
@@ -49,7 +51,7 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 3000;
 const models = require('./models');
 models.sequelize.sync().then(() => {
-  app.listen(3000, () => {
+  app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
   });
 });

@@ -1,0 +1,63 @@
+{{> delivery/header }}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{pedido.comercio.nombre_comercio}}</h2>
+        <a href="/delivery" class="btn btn-outline-secondary">Volver</a>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between">
+            <span class="badge bg-{{#if (eq pedido.estado 'pendiente')}}warning{{else if (eq pedido.estado 'en proceso')}}primary{{else}}success{{/if}}">
+                {{pedido.estado}}
+            </span>
+            <small>{{formatDate pedido.fecha_hora}}</small>
+        </div>
+        
+        <div class="card-body">
+            <h5 class="card-title">Productos del pedido</h5>
+            
+            <ul class="list-group mb-4">
+                {{#each pedido.productos}}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <img src="{{this.imagen}}" alt="{{this.nombre}}" width="50" class="me-3">
+                            <span>{{this.nombre}}</span>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">RD$ {{this.precio}}</span>
+                    </li>
+                {{/each}}
+            </ul>
+            
+            {{#if (eq pedido.estado 'completado')}}
+                <div class="alert alert-success">
+                    Pedido completado el {{formatDate pedido.updatedAt}}
+                </div>
+            {{else}}
+                {{#if direccion}}
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            <h5>Dirección de entrega</h5>
+                        </div>
+                        <div class="card-body">
+                            <h6>{{direccion.nombre}}</h6>
+                            <p>{{direccion.descripcion}}</p>
+                        </div>
+                    </div>
+                {{/if}}
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5>Total: RD$ {{pedido.total}}</h5>
+                    
+                    {{#if (eq pedido.estado 'en proceso')}}
+                        <form action="/delivery/pedido/{{pedido.id}}/completar" method="POST">
+                            <button type="submit" class="btn btn-success">Completar Pedido</button>
+                        </form>
+                    {{/if}}
+                </div>
+            {{/if}}
+        </div>
+    </div>
+</div>
+
+{{> delivery/footer }}

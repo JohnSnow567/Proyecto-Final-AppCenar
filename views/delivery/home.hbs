@@ -1,0 +1,31 @@
+{{> delivery/header }}
+
+<div class="container mt-4">
+    <h2>Mis Pedidos Asignados</h2>
+    
+    {{#if pedidos.length}}
+        <div class="list-group">
+            {{#each pedidos}}
+                <a href="/delivery/pedido/{{this.id}}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <div>
+                            <img src="{{this.comercio.logo}}" alt="{{this.comercio.nombre_comercio}}" width="50" class="me-3">
+                            <span class="badge bg-{{#if (eq this.estado 'pendiente')}}warning{{else if (eq this.estado 'en proceso')}}primary{{else}}success{{/if}}">
+                                {{this.estado}}
+                            </span>
+                        </div>
+                        <small>{{formatDate this.fecha_hora}}</small>
+                    </div>
+                    <h5 class="mt-2">{{this.comercio.nombre_comercio}}</h5>
+                    <p class="mb-1">Total: RD$ {{this.total}} - {{this.productos.length}} productos</p>
+                </a>
+            {{/each}}
+        </div>
+    {{else}}
+        <div class="alert alert-info">
+            No tienes pedidos asignados actualmente.
+        </div>
+    {{/if}}
+</div>
+
+{{> delivery/footer }}
