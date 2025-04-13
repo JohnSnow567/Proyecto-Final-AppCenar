@@ -1,0 +1,51 @@
+<div class="container mt-4">
+  <h1>Listado de Comercios</h1>
+
+  {{#if error}}
+    <div class="alert alert-danger">{{error}}</div>
+  {{/if}}
+
+  <table class="table table-striped">
+    <thead class="table-dark">
+      <tr>
+        <th>Nombre</th>
+        <th>Logo</th>
+        <th>Pedidos</th>
+        <th>Teléfono</th>
+        <th>Horario</th>
+        <th>Correo</th>
+        <th>Estado</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each comercios}}
+      <tr>
+        <td>{{this.dataValues.nombre_comercio}}</td>
+        <td><img src="/images/uploads/logos/{{this.dataValues.logo}}" style="max-width: 150px;"></td>
+        <td>{{this.dataValues.pedidoCount}}</td>
+        <td>{{this.usuario.dataValues.telefono}}</td>
+        <td>{{this.dataValues.hora_apertura}} - {{this.dataValues.hora_cierre}}</td>
+        <td>{{this.usuario.dataValues.correo}}</td>
+        <td>
+          {{#if (eq this.usuario.dataValues.estado 'activo')}}
+            <span class="badge bg-success">Activo</span>
+          {{else}}
+            <span class="badge bg-danger">Inactivo</span>
+          {{/if}}
+        </td>
+        <td>
+          <form action="/admin/comercios/toggle/{{this.dataValues.id_usuario}}" method="POST">
+            {{#if (eq this.usuario.dataValues.estado 'activo')}}
+              <button class="btn btn-warning btn-sm" type="submit">Inactivar</button>
+            {{else}}
+              <button class="btn btn-success btn-sm" type="submit">Activar</button>
+            {{/if}}
+          </form>
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+    <a href="/admin/dashboard" class="btn btn-secondary">Volver</a>
+</div>

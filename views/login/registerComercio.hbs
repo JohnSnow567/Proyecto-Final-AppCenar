@@ -33,7 +33,7 @@
       <select name="id_tipo_comercio" class="form-control" required>
         <option value="">Seleccione...</option>
         {{#each tipos}}
-          <option value="{{this.id}}">{{this.nombre}}</option>
+          <option value="{{this.dataValues.id}}">{{this.dataValues.nombre}}</option>
         {{/each}}
       </select>
     </div>

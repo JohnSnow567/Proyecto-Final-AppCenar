@@ -1,0 +1,12 @@
+<div class="container mt-4">
+  <h1>Configuración del Sistema</h1>
+
+  {{#if error}}
+    <div class="alert alert-danger">{{error}}</div>
+  {{/if}}
+
+  <p><strong>ITBIS:</strong> {{config.dataValues.itbis}}%</p>
+
+  <a href="/admin/configuracion/edit" class="btn btn-primary">Editar Configuración</a>
+    <a href="/admin/dashboard" class="btn btn-secondary">Volver</a>
+</div>

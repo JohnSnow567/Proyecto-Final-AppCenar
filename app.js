@@ -26,13 +26,22 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.engine('hbs', 
     exphbs.engine({
     defaultLayout: 'main', 
-    extname: "hbs" }));
+    extname: "hbs",
+    helpers: {
+      eq: function(a, b){
+        return a == b;
+      },
+      neq: function(a, b){
+        return a !== b;
+      }
+    }}));
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Rutas
 const authRoutes = require('./routes/authroutes');
 app.use('/', authRoutes);
+app.use('/', require ('./routes/adminRoutes'));
 
 // Ruta raíz redirige a login
 app.get('/', (req, res) => {

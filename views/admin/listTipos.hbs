@@ -1,0 +1,35 @@
+<div class="container mt-4">
+  <h1>Tipos de Comercios</h1>
+
+  <div class="mb-3">
+    <a href="/admin/tipos/create" class="btn btn-primary">Crear Tipo de Comercio</a>
+  </div>
+
+  <table class="table table-bordered">
+    <thead class="table-dark">
+      <tr>
+        <th>Nombre</th>
+        <th>Icono</th>
+        <th>Descripción</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each tipos}}
+      <tr>
+        <td>{{this.dataValues.nombre}}</td>
+        <td>
+          <img src="/images/uploads/iconos/{{this.dataValues.icono}}" alt="{{this.dataValues.nombre}}" style="max-width: 100px;"/></td>
+        <td>{{this.dataValues.descripcion}}</td>
+        <td>
+          <a href="/admin/tipos/edit/{{this.dataValues.id}}" class="btn btn-warning btn-sm">Editar</a>
+          <form action="/admin/tipos/delete/{{this.dataValues.id}}" method="POST" style="display:inline;" onsubmit="return confirm('¿Está seguro que desea eliminar este tipo de comercio y sus comercios asociados?')">
+            <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+    <a href="/admin/dashboard" class="btn btn-secondary">Volver</a>
+</div>
