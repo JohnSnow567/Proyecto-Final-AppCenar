@@ -1,0 +1,38 @@
+<div class="container mt-4">
+  <h1>Mantenimiento de Categorías</h1>
+  
+  <div class="mb-3">
+    <a href="/comercio/categorias/create" class="btn btn-primary">Crear Categoría</a>
+    <a href="/comercio/home" class="btn btn-secondary float-end">Volver al Home</a>
+  </div>
+  
+  {{#if categorias.length}}
+    <table class="table table-bordered">
+      <thead class="table-dark">
+        <tr>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Cantidad de Productos</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each categorias}}
+          <tr>
+            <td>{{this.dataValues.nombre}}</td>
+            <td>{{this.dataValues.descripcion}}</td>
+            <td>{{this.dataValues.productCount}}</td>
+            <td>
+              <a href="/comercio/categorias/edit/{{this.dataValues.id}}" class="btn btn-warning btn-sm">Editar</a>
+              <form action="/comercio/categorias/delete/{{this.dataValues.id}}" method="POST" style="display:inline;" onsubmit="return confirm('¿Está seguro que desea eliminar esta categoría?')">
+                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{else}}
+    <p>No se han creado categorías.</p>
+  {{/if}}
+</div>

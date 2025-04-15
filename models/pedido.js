@@ -1,6 +1,6 @@
 module.exports = (sequelize, DataTypes) => {
     const Pedido = sequelize.define('Pedido', {
-      id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+      id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true }, 
       id_cliente: { type: DataTypes.INTEGER, allowNull: false },
       id_comercio: { type: DataTypes.INTEGER, allowNull: false },
       id_delivery: { type: DataTypes.INTEGER, allowNull: true },
@@ -17,6 +17,8 @@ module.exports = (sequelize, DataTypes) => {
       Pedido.belongsTo(models.Usuario, { foreignKey: 'id_cliente', as: 'cliente' });
       Pedido.belongsTo(models.Comercio, { foreignKey: 'id_comercio', as: 'comercio' });
       Pedido.belongsTo(models.Usuario, { foreignKey: 'id_delivery', as: 'delivery' });
+      Pedido.hasMany(models.DetallePedido, { foreignKey: 'id_pedido', as: 'detalles' });
+      Pedido.belongsToMany(models.Producto, { through: models.DetallePedido, foreignKey: 'id_pedido', otherKey: 'id_producto', as: 'productos' });
     };
   
     return Pedido;

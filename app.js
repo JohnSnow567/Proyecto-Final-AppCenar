@@ -42,6 +42,7 @@ app.set('views', path.join(__dirname, 'views'));
 const authRoutes = require('./routes/authroutes');
 app.use('/', authRoutes);
 app.use('/', require ('./routes/adminRoutes'));
+app.use('/', require ('./routes/comercioRoutes'));
 
 // Ruta raíz redirige a login
 app.get('/', (req, res) => {
