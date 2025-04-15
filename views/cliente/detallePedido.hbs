@@ -1,0 +1,58 @@
+{{> header title=(concat 'Pedido #' pedido.id) }}
+
+<div class="container mt-4">
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <span class="badge bg-{{#if (eq pedido.estado 'pendiente')}}warning{{else if (eq pedido.estado 'en proceso')}}primary{{else}}success{{/if}}">
+                    {{pedido.estado}}
+                </span>
+                <span class="ms-2">{{formatDate pedido.fecha_hora}}</span>
+            </div>
+            <a href="/cliente/pedidos" class="btn btn-sm btn-outline-secondary">
+                Volver a mis pedidos
+            </a>
+        </div>
+        
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="mb-3">Detalles del Comercio</h5>
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{{pedido.comercio.logo}}" alt="{{pedido.comercio.nombre_comercio}}" 
+                             class="rounded-circle me-3" width="50" height="50">
+                        <div>
+                            <h6 class="mb-0">{{pedido.comercio.nombre_comercio}}</h6>
+                            <small class="text-muted">{{pedido.comercio.telefono}}</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6">
+                    <h5 class="mb-3">Resumen del Pedido</h5>
+                    <ul class="list-group list-group-flush">
+                        {{#each pedido.productos}}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <div>
+                                <h6 class="mb-1">{{this.nombre}}</h6>
+                                {{#if this.pedido_producto.cantidad}}
+                                <small class="text-muted">Cantidad: {{this.pedido_producto.cantidad}}</small>
+                                {{/if}}
+                            </div>
+                            <span>RD$ {{this.precio}}</span>
+                        </li>
+                        {{/each}}
+                    </ul>
+                    <div class="border-top pt-3 mt-3">
+                        <div class="d-flex justify-content-between">
+                            <strong>Total:</strong>
+                            <strong>RD$ {{pedido.total}}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{> footer }}

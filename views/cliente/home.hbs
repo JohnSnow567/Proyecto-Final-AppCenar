@@ -1,0 +1,22 @@
+{{> header title="Inicio - Cliente" }}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Hola, {{user.nombre}}. ¿Qué vas a pedir hoy?</h2>
+    
+    <div class="row">
+        {{#each tiposComercio}}
+        <div class="col-md-2 mb-4 text-center">
+            <a href="/cliente/comercios?tipo={{this.id}}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <img src="{{this.icono}}" alt="{{this.nombre}}" class="img-fluid mb-2" style="height: 50px;">
+                        <h5 class="card-title">{{this.nombre}}</h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {{/each}}
+    </div>
+</div>
+
+{{> footer }}

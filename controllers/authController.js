@@ -1,10 +1,9 @@
-const { Usuario, Comercio, TipoComercio } = require('../models');
+const { Usuario, Comercio, TipoComercio, Direccion } = require('../models');
 const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
 const crypto = require('crypto');
 
 module.exports = {
-  // Login existente
   showLogin: (req, res) => {
     if (req.session && req.session.user) {
       const { rol } = req.session.user;
@@ -12,7 +11,7 @@ module.exports = {
         case 'cliente':
           return res.redirect('/cliente/home');
         case 'delivery':
-          return res.redirect('/delivery/home');
+          return res.redirect('/delivery');
         case 'comercio':
           return res.redirect('/comercio/home');
         case 'administrador':
@@ -30,25 +29,35 @@ module.exports = {
       if (!correo_usuario || !password) {
         return res.render('login', { title: 'Login', error: "Todos los campos son requeridos" });
       }
+      
       const usuario = await Usuario.findOne({
-        where: { [Op.or]: [{ correo: correo_usuario }, { usuario: correo_usuario }] }
+        where: { [Op.or]: [{ correo: correo_usuario }, { usuario: correo_usuario }] },
+        include: [{ model: Direccion, as: 'direcciones' }]
       });
+
       if (!usuario) {
         return res.render('login', { title: 'Login', error: "Datos de acceso incorrectos" });
       }
+
       const validPassword = await bcrypt.compare(password, usuario.contrasena);
       if (!validPassword) {
         return res.render('login', { title: 'Login', error: "Datos de acceso incorrectos" });
       }
+
       if (usuario.estado === 'inactivo') {
-        return res.render('login', { title: 'Login', error: "Cuenta inactiva. Revise su correo o contacte a un administrador" });
+        return res.render('login', { 
+          title: 'Login', 
+          error: "Cuenta inactiva. Revise su correo o contacte a un administrador" 
+        });
       }
-      req.session.user = usuario;
+
+      req.session.user = usuario.get({ plain: true });
+      
       switch (usuario.rol) {
         case 'cliente':
           return res.redirect('/cliente/home');
         case 'delivery':
-          return res.redirect('/delivery/home');
+          return res.redirect('/delivery');
         case 'comercio':
           return res.redirect('/comercio/home');
         case 'administrador':
@@ -227,5 +236,14 @@ module.exports = {
       console.error(error);
       res.render('newPassword', { title: 'Nueva Contraseña', error: 'Error en el servidor', token: req.params.token });
     }
+  },
+
+  // Middleware para verificar rol de cliente
+  checkCliente: (req, res, next) => {
+    if (req.session.user && req.session.user.rol === 'cliente') {
+      return next();
+    }
+    req.flash('error_msg', 'Acceso restringido a clientes');
+    res.redirect('/login');
   }
 };

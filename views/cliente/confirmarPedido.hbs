@@ -1,0 +1,63 @@
+{{> header title="Confirmar Pedido" }}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Seleccionar Dirección</h5>
+                </div>
+                <div class="card-body">
+                    <form action="/cliente/comercios/{{comercio.id}}/finalizar" method="POST">
+                        {{#each direcciones}}
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="id_direccion" 
+                                   id="direccion{{this.id}}" value="{{this.id}}" required>
+                            <label class="form-check-label" for="direccion{{this.id}}">
+                                <strong>{{this.nombre}}</strong> - {{this.descripcion}}
+                            </label>
+                        </div>
+                        {{/each}}
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="/cliente/direcciones/nueva" class="btn btn-outline-secondary">
+                                <i class="fas fa-plus"></i> Nueva Dirección
+                            </a>
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Resumen del Pedido</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="{{comercio.logo}}" alt="{{comercio.nombre_comercio}}" 
+                             class="rounded-circle me-3" width="50" height="50">
+                        <h6 class="mb-0">{{comercio.nombre_comercio}}</h6>
+                    </div>
+
+                    <ul class="list-group list-group-flush mb-3">
+                        {{#each carrito}}
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span>{{this.nombre}} x{{this.cantidad}}</span>
+                            <span>RD$ {{multiply this.precio this.cantidad}}</span>
+                        </li>
+                        {{/each}}
+                    </ul>
+
+                    <div class="border-top pt-2">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Subtotal:</span>
+                            <span>RD$ {{subtotal}}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>ITBIS ({{itbis}}%):</span>
+                            <span>RD$ {{calculateTax subtotal itbis}}</span>
+                        </div>
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Total:</span>
+                            <span>RD

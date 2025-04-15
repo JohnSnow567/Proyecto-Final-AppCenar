@@ -1,0 +1,75 @@
+{{> header title="Mi Perfil" }}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Foto de Perfil</h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{user.foto}}" class="rounded-circle img-thumbnail mb-3" 
+                         width="200" height="200" alt="Foto de perfil">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <input type="file" class="form-control" name="foto" accept="image/*">
+                        </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Información Personal</h5>
+                </div>
+                <div class="card-body">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" 
+                                   value="{{user.nombre}}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="apellido" class="form-label">Apellido</label>
+                            <input type="text" class="form-control" id="apellido" name="apellido" 
+                                   value="{{user.apellido}}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="telefono" class="form-label">Teléfono</label>
+                            <input type="tel" class="form-control" id="telefono" name="telefono" 
+                                   value="{{user.telefono}}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="correo" class="form-label">Correo Electrónico</label>
+                            <input type="email" class="form-control" id="correo" name="correo" 
+                                   value="{{user.correo}}" readonly>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h5 class="mb-3">Cambiar Contraseña</h5>
+                        <div class="mb-3">
+                            <label for="contrasena_actual" class="form-label">Contraseña Actual</label>
+                            <input type="password" class="form-control" id="contrasena_actual" name="contrasena_actual">
+                        </div>
+                        <div class="mb-3">
+                            <label for="nueva_contrasena" class="form-label">Nueva Contraseña</label>
+                            <input type="password" class="form-control" id="nueva_contrasena" name="nueva_contrasena">
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmar_contrasena" class="form-label">Confirmar Contraseña</label>
+                            <input type="password" class="form-control" id="confirmar_contrasena" name="confirmar_contrasena">
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="/cliente" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{> footer }}

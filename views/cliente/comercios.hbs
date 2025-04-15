@@ -1,0 +1,41 @@
+{{> header title=(if tipoActual then tipoActual.nombre else 'Todos los Comercios') }}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{title}}</h2>
+        <form class="d-flex" method="GET" action="/cliente/comercios">
+            <input type="hidden" name="tipo" value="{{tipoActual.id}}">
+            <input class="form-control me-2" type="search" name="search" placeholder="Buscar comercio..." 
+                   value="{{searchQuery}}">
+            <button class="btn btn-outline-primary" type="submit">Buscar</button>
+        </form>
+    </div>
+
+    {{#if comercios.length}}
+    <div class="row">
+        {{#each comercios}}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <img src="{{this.logo}}" class="card-img-top" alt="{{this.nombre_comercio}}" 
+                     style="height: 180px; object-fit: cover;">
+                <div class="card-body">
+                    <h5 class="card-title">{{this.nombre_comercio}}</h5>
+                    <p class="card-text text-muted">{{this.tipoComercio.nombre}}</p>
+                </div>
+                <div class="card-footer bg-white">
+                    <a href="/cliente/comercios/{{this.id}}" class="btn btn-primary w-100">
+                        Ver Catálogo
+                    </a>
+                </div>
+            </div>
+        </div>
+        {{/each}}
+    </div>
+    {{else}}
+    <div class="alert alert-info">
+        No se encontraron comercios{{#if searchQuery}} con "{{searchQuery}}"{{/if}}.
+    </div>
+    {{/if}}
+</div>
+
+{{> footer }}
