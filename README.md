@@ -24,6 +24,19 @@ Mantenimiento de Administradores ✅
 
 Mantenimiento de Tipos de Comercio ✅
 
+15/04/2025
+
+Comercios: Completado ✅
+
+Visualizacion de pedidos en el home ✅
+
+Detalles del pedido y asignacion de delivery ✅
+
+Edicion de Perfil del Comercio ✅
+
+Mantenimiento de Productos ✅
+
+Mantenimiento de Tipos de Productos ✅
 
 
 (Insertar cambios hechos para mantener un orden de funcionalidades todavia por agregar)
