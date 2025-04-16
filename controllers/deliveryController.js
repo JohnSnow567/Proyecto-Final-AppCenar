@@ -1,7 +1,7 @@
 const { Pedido, Comercio, Usuario, Direccion, Producto, DetallePedido } = require('../models');
 
 module.exports = {
-  // Home del delivery - lista de pedidos asignados
+  // Home del delivery
   homeDelivery: async (req, res) => {
     try {
       const pedidos = await Pedido.findAll({

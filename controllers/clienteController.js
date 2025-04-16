@@ -60,7 +60,7 @@ module.exports = {
     }
   },
 
-  // Mostrar formulario de dirección (crear/editar)
+  // Mostrar formulario de dirección 
   mostrarFormDireccion: (req, res) => {
     res.render('cliente/formDireccion', {
       title: req.params.id ? 'Editar Dirección' : 'Nueva Dirección',
@@ -216,7 +216,6 @@ module.exports = {
     try {
       const { nombre, apellido, telefono, password, confirmPassword } = req.body;
 
-      // Validaciones básicas
       if (!nombre || !apellido || !telefono) {
         req.flash('error_msg', 'Nombre, apellido y teléfono son requeridos');
         return res.redirect('/cliente/perfil');
@@ -322,7 +321,7 @@ listarPedidos: async (req, res) => {
   }
 },
 
-// Método mostrarDetallePedido actualizado
+// Método mostrarDetallePedido
 mostrarDetallePedido: async (req, res) => {
   try {
     const pedido = await Pedido.findOne({
@@ -398,7 +397,6 @@ mostrarDetallePedido: async (req, res) => {
         title: 'Catálogo de Productos',
         categorias,
         user: req.session.user
-        // Puedes pasar más datos al catálogo si es necesario
       });
     } catch (error) {
       console.error('Error al cargar el catálogo:', error);
