@@ -1,75 +1,68 @@
-{{> header title="Mi Perfil" }}
-
 <div class="container mt-4">
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Foto de Perfil</h5>
-                </div>
-                <div class="card-body text-center">
-                    <img src="{{user.foto}}" class="rounded-circle img-thumbnail mb-3" 
-                         width="200" height="200" alt="Foto de perfil">
-                    <form method="POST" enctype="multipart/form-data">
-                        <div class="mb-3">
-                            <input type="file" class="form-control" name="foto" accept="image/*">
-                        </div>
-                </div>
-            </div>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h4>Mi Perfil</h4>
         </div>
-        
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Información Personal</h5>
-                </div>
-                <div class="card-body">
-                        <div class="mb-3">
-                            <label for="nombre" class="form-label">Nombre</label>
-                            <input type="text" class="form-control" id="nombre" name="nombre" 
-                                   value="{{user.nombre}}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="apellido" class="form-label">Apellido</label>
-                            <input type="text" class="form-control" id="apellido" name="apellido" 
-                                   value="{{user.apellido}}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="telefono" class="form-label">Teléfono</label>
-                            <input type="tel" class="form-control" id="telefono" name="telefono" 
-                                   value="{{user.telefono}}" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="correo" class="form-label">Correo Electrónico</label>
-                            <input type="email" class="form-control" id="correo" name="correo" 
-                                   value="{{user.correo}}" readonly>
-                        </div>
-                        
-                        <hr>
-                        
-                        <h5 class="mb-3">Cambiar Contraseña</h5>
-                        <div class="mb-3">
-                            <label for="contrasena_actual" class="form-label">Contraseña Actual</label>
-                            <input type="password" class="form-control" id="contrasena_actual" name="contrasena_actual">
-                        </div>
-                        <div class="mb-3">
-                            <label for="nueva_contrasena" class="form-label">Nueva Contraseña</label>
-                            <input type="password" class="form-control" id="nueva_contrasena" name="nueva_contrasena">
-                        </div>
-                        <div class="mb-3">
-                            <label for="confirmar_contrasena" class="form-label">Confirmar Contraseña</label>
-                            <input type="password" class="form-control" id="confirmar_contrasena" name="confirmar_contrasena">
-                        </div>
-                        
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="/cliente" class="btn btn-secondary">Cancelar</a>
-                            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+        <div class="card-body text-center">
+          <img src="{{#if usuario.foto}}{{usuario.foto}}{{else}}/img/default-profile.png{{/if}}" 
+               class="rounded-circle mb-3" width="150" alt="Foto de perfil">
+          <h5>{{usuario.nombre}} {{usuario.apellido}}</h5>
+          <p class="text-muted">{{usuario.correo}}</p>
         </div>
+      </div>
     </div>
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h4>Editar Perfil</h4>
+        </div>
+        <div class="card-body">
+          <form action="/cliente/perfil" method="POST" enctype="multipart/form-data">
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="nombre">Nombre</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" value="{{usuario.nombre}}" required>
+              </div>
+              <div class="form-group col-md-6">
+                <label for="apellido">Apellido</label>
+                <input type="text" class="form-control" id="apellido" name="apellido" value="{{usuario.apellido}}" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="telefono">Teléfono</label>
+              <input type="tel" class="form-control" id="telefono" name="telefono" value="{{usuario.telefono}}" required>
+            </div>
+            <div class="form-group">
+              <label for="foto">Foto de perfil</label>
+              <div class="custom-file">
+                <input type="file" class="custom-file-input" id="foto" name="foto">
+                <label class="custom-file-label" for="foto">Elegir archivo</label>
+              </div>
+            </div>
+            <hr>
+            <h5>Cambiar Contraseña</h5>
+            <div class="form-group">
+              <label for="password">Nueva Contraseña</label>
+              <input type="password" class="form-control" id="password" name="password">
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword">Confirmar Contraseña</label>
+              <input type="password" class="form-control" id="confirmPassword" name="confirmPassword">
+            </div>
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-{{> footer }}
+<script>
+  // Mostrar nombre de archivo seleccionado
+  document.querySelector('.custom-file-input').addEventListener('change', function(e) {
+    const fileName = e.target.files[0] ? e.target.files[0].name : "Elegir archivo";
+    this.nextElementSibling.textContent = fileName;
+  });
+</script>

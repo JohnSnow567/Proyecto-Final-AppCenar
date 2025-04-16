@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
   
     Direccion.associate = function(models) {
       Direccion.belongsTo(models.Usuario, { foreignKey: 'id_cliente', as: 'cliente' });
+      Direccion.hasMany(models.Pedido, {foreignKey: 'id_direccion', as: 'pedidos' });
     };
   
     return Direccion;

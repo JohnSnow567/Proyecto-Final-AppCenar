@@ -10,7 +10,9 @@ module.exports = (sequelize, DataTypes) => {
       contrasena: { type: DataTypes.STRING(255), allowNull: false },
       rol: { type: DataTypes.ENUM('cliente', 'delivery', 'comercio', 'administrador'), allowNull: false },
       estado: { type: DataTypes.ENUM('activo', 'inactivo'), defaultValue: 'inactivo' },
-      fecha_registro: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+      fecha_registro: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
+      activationToken: { type: DataTypes.STRING(255), allowNull: true },
+      resetToken: { type: DataTypes.STRING(255), allowNull: true} 
     }, {
       tableName: 'usuarios',
       timestamps: false

@@ -1,0 +1,51 @@
+<div class="container mt-4">
+  <h1>Editar Administrador</h1>
+
+  {{#if error}}
+    <div class="alert alert-danger">{{error}}</div>
+  {{/if}}
+
+  <form action="/admin/administradores/edit/{{admin.dataValues.id}}" method="POST" enctype="multipart/form-data">
+    <div class="form-group mb-2">
+      <label>Nombre</label>
+      <input type="text" name="nombre" class="form-control" value="{{admin.dataValues.nombre}}" required>
+    </div>
+    <div class="form-group mb-2">
+      <label>Apellido</label>
+      <input type="text" name="apellido" class="form-control" value="{{admin.dataValues.apellido}}" required>
+    </div>
+    <div class="form-group mb-2">
+      <label>Correo</label>
+      <input type="email" name="correo" class="form-control" value="{{admin.dataValues.correo}}" required>
+    </div>
+    <div class="form-group mb-2">
+      <label>Telefono</label>
+      <input type="text" name="telefono" class="form-control" value="{{admin.dataValues.telefono}}" required>
+    </div>
+    <div class="form-group mb-2">
+      <label>Usuario</label>
+      <input type="text" name="usuario" class="form-control" value="{{admin.dataValues.usuario}}" required>
+    </div>
+    <div class="form-group mb-2">
+      <label>Foto Actual</label><br>
+      <img src="/images/uploads/perfiles/{{admin.dataValues.foto}}" width="200" alt="Foto actual">
+    </div>
+    <div class="form-group mb-3">
+      <label>Foto Nueva (Opcional)</label>
+      <input type="file" name="foto" class="form-control">
+    </div>
+    <div class="form-group mb-2">
+      <label>Contraseña</label>
+      <input type="password" name="password" class="form-control" placeholder="Deje en blanco para no cambiar">
+    </div>
+    <div class="form-group mb-3">
+      <label>Confirmar Contraseña</label>
+      <input type="password" name="confirmPassword" class="form-control" placeholder="Deje en blanco para no cambiar">
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="/admin/administradores" class="btn btn-secondary">Volver</a>
+      <button type="submit" class="btn btn-success">Guardar</button>
+    </div>
+  </form>
+</div>

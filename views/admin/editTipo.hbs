@@ -1,0 +1,31 @@
+<div class="container mt-4">
+  <h1>Editar Tipo de Comercio</h1>
+
+  {{#if error}}
+    <div class="alert alert-danger">{{error}}</div>
+  {{/if}}
+
+  <form action="/admin/tipos/edit/{{tipo.dataValues.id}}" method="POST" enctype="multipart/form-data">
+    <div class="form-group mb-2">
+      <label>Nombre del Tipo</label>
+      <input type="text" name="nombre" class="form-control" value="{{tipo.dataValues.nombre}}" required>
+    </div>
+    <div class="form-group mb-2">
+      <label>Descripción</label>
+      <input type="text" name="descripcion" class="form-control" value="{{tipo.dataValues.descripcion}}" required>
+    </div>
+    <div class="form-group mb-2">
+      <label>Icono Actual</label><br>
+      <img src="/images/uploads/iconos/{{tipo.dataValues.icono}}" width="200" alt="Icono actual">
+    </div>
+    <div class="form-group mb-3">
+      <label>Nuevo Icono (opcional)</label>
+      <input type="file" name="icono" class="form-control">
+    </div>
+
+    <div class="d-flex gap-2">
+      <a href="/admin/tipos" class="btn btn-secondary">Volver</a>
+      <button type="submit" class="btn btn-success">Guardar</button>
+    </div>
+  </form>
+</div>

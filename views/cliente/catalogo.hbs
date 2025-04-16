@@ -1,0 +1,38 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-3">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Categorías</h5>
+        </div>
+        <div class="list-group list-group-flush">
+          {{#each categorias}}
+          <a href="#" class="list-group-item list-group-item-action">{{nombre}}</a>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-9">
+      <h2 class="mb-4">{{comercio.nombre}}</h2>
+      <div class="row">
+        {{#each productos}}
+        <div class="col-md-4 mb-4">
+          <div class="card h-100">
+            <img src="{{foto}}" class="card-img-top" alt="{{nombre}}">
+            <div class="card-body">
+              <h5 class="card-title">{{nombre}}</h5>
+              <p class="card-text">{{descripcion}}</p>
+              <p class="text-success font-weight-bold">RD$ {{precio}}</p>
+            </div>
+            <div class="card-footer bg-white">
+              <button class="btn btn-sm btn-primary add-to-cart" data-producto="{{id}}">
+                Añadir al carrito
+              </button>
+            </div>
+          </div>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+</div>

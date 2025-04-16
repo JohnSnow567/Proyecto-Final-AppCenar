@@ -1,0 +1,63 @@
+<div class="container mt-4">
+  <h1 class="mb-4">Dashboard Administrador</h1>
+
+  <nav class="mb-4">
+    <a href="/admin/dashboard" class="btn btn-primary">Home</a>
+    <a href="/admin/clientes" class="btn btn-outline-dark">Listado de Clientes</a>
+    <a href="/admin/delivery" class="btn btn-outline-dark">Listado de Delivery</a>
+    <a href="/admin/comercios" class="btn btn-outline-dark">Listado de Comercios</a>
+    <a href="/admin/configuracion" class="btn btn-outline-dark">Configuración</a>
+    <a href="/admin/administradores" class="btn btn-outline-dark">Administradores</a>
+    <a href="/admin/tipos" class="btn btn-outline-dark">Tipos de Comercios</a>
+    <a href="/admin/logout" class="btn btn-danger float-end">Cerrar sesión</a>
+  </nav>
+
+  {{#if error}}
+    <div class="alert alert-danger">{{error}}</div>
+  {{/if}}
+
+  <div class="row text-center">
+    <div class="col-md-3 mb-3">
+      <div class="card bg-light">
+        <div class="card-body">
+          <h5>Pedidos Totales</h5>
+          <p class="display-6">{{indicadores.totalPedidos}}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="card bg-light">
+        <div class="card-body">
+          <h5>Pedidos Hoy</h5>
+          <p class="display-6">{{indicadores.pedidosHoy}}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3 mb-3">
+      <div class="card bg-light">
+        <div class="card-body">
+          <h5>Productos</h5>
+          <p class="display-6">{{indicadores.totalProductos}}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row text-center">
+    <div class="col-md-4 mb-3">
+      <h5>Clientes</h5>
+      <p class="text-success">Activos: {{indicadores.clientesActivos}}</p>
+      <p class="text-danger">Inactivos: {{indicadores.clientesInactivos}}</p>
+    </div>
+    <div class="col-md-4 mb-3">
+      <h5>Delivery</h5>
+      <p class="text-success">Activos: {{indicadores.deliveryActivos}}</p>
+      <p class="text-danger">Inactivos: {{indicadores.deliveryInactivos}}</p>
+    </div>
+    <div class="col-md-4 mb-3">
+      <h5>Comercios</h5>
+      <p class="text-success">Activos: {{indicadores.comerciosActivos}}</p>
+      <p class="text-danger">Inactivos: {{indicadores.comerciosInactivos}}</p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,107 @@
+<div class="container mt-4">
+  <h2>Mis Pedidos</h2>
+  {{#if pedidos.length}}
+    {{#each pedidos}}
+      <div class="card mb-3">
+        <div class="card-body">
+          <div class="d-flex justify-content-between">
+            <div>
+              <img src="{{comercio.foto}}" width="50" class="mr-3">
+              <span class="h5">{{comercio.nombre}}</span>
+            </div>
+            <div>
+              <span class="badge badge-{{#if (eq estado 'completado')}}success{{else}}warning{{/if}}">
+                {{estado}}
+              </span>
+              <p class="mb-0">Total: RD$ {{total}}</p>
+              <small>{{fecha}}</small>
+            </div>
+          </div>
+          <a href="/cliente/pedidos/{{id}}" class="btn btn-sm btn-primary mt-2">Ver detalle</a>
+
+          {{#if (eq ../pedido.id id)}}
+            <div class="mt-4">
+              <h4>Pedido #{{../pedido.id}}</h4>
+              <span class="badge badge-{{#if (eq ../pedido.estado 'completado')}}success{{else}}warning{{/if}}">
+                {{../pedido.estado}}
+              </span>
+              <h5>Detalles del Pedido</h5>
+              <ul class="list-group mb-3">
+                {{#each ../pedido.productos}}
+                  <li class="list-group-item d-flex justify-content-between">
+                    <div>
+                      <h6>{{nombre}}</h6>
+                      <small class="text-muted">{{descripcion}}</small>
+                    </div>
+                    <div class="text-right">
+                      <div>{{cantidad}} x RD$ {{precio}}</div>
+                      <strong>RD$ {{subtotal}}</strong>
+                    </div>
+                  </li>
+                {{/each}}
+              </ul>
+              <div class="text-right">
+                <p>Subtotal: RD$ {{../pedido.subtotal}}</p>
+                <p>ITBIS (18%): RD$ {{../pedido.itbis}}</p>
+                <h5>Total: RD$ {{../pedido.total}}</h5>
+              </div>
+
+              <h5 class="mt-4">Información de Entrega</h5>
+              <h6>Dirección</h6>
+              <p>{{../pedido.direccion.nombre}}</p>
+              <p>{{../pedido.direccion.descripcion}}</p>
+              <hr>
+              <h6>Notas</h6>
+              <p>{{../pedido.notas}}</p>
+
+              <h5 class="mt-4">Información del Comercio</h5>
+              <h6>{{../pedido.comercio.nombre}}</h6>
+              <p>{{../pedido.comercio.descripcion}}</p>
+              <p><i class="fas fa-phone"></i> {{../pedido.comercio.telefono}}</p>
+            </div>
+          {{/if}}
+        </div>
+      </div>
+    {{/each}}
+  {{else}}
+    <div class="alert alert-info">No tienes pedidos recientes.</div>
+  {{/if}}
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const verDetalleButtons = document.querySelectorAll('.btn-primary');
+    const cardBodies = document.querySelectorAll('.card-body');
+
+    verDetalleButtons.forEach((button, index) => {
+      button.addEventListener('click', function(event) {
+        event.preventDefault();
+        const pedidoId = this.getAttribute('href').split('/').pop();
+
+        // Ocultar todos los detalles primero
+        cardBodies.forEach(body => {
+          const detalle = body.querySelector('.mt-4');
+          if (detalle) {
+            detalle.style.display = 'none';
+          }
+        });
+
+        // Mostrar el detalle del pedido clickeado
+        const currentCardBody = this.closest('.card-body');
+        const detalleToShow = currentCardBody.querySelector('.mt-4');
+        if (detalleToShow && detalleToShow.querySelector(`h4:contains('Pedido #${pedidoId}')`)) {
+          detalleToShow.style.display = 'block';
+        } else {
+          // Si el detalle no existe, realizar una petición para obtenerlo y mostrarlo
+          fetch(`/cliente/pedidos/${pedidoId}`)
+            .then(response => response.text())
+            .then(data => {
+              const cardBody = this.closest('.card-body');
+              cardBody.insertAdjacentHTML('beforeend', `<div class="mt-4">${data}</div>`);
+            })
+            .catch(error => console.error('Error fetching pedido detail:', error));
+        }
+      });
+    });
+  });
+</script>

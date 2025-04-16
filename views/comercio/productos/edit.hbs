@@ -1,0 +1,43 @@
+<div class="container mt-4">
+  <h1>Editar Producto</h1>
+
+  {{#if error}}
+    <div class="alert alert-danger">{{error}}</div>
+  {{/if}}
+
+  <form action="/comercio/productos/edit/{{producto.dataValues.id}}" method="POST" enctype="multipart/form-data">
+    <div class="mb-3">
+      <label>Nombre del Producto</label>
+      <input type="text" name="nombre" class="form-control" value="{{producto.dataValues.nombre}}" required>
+    </div>
+    <div class="mb-3">
+      <label>Descripción</label>
+      <input type="text" name="descripcion" class="form-control" value="{{producto.dataValues.descripcion}}" required>
+    </div>
+    <div class="mb-3">
+      <label>Precio</label>
+      <input type="number" name="precio" class="form-control" step="0.01" value="{{producto.dataValues.precio}}" required>
+    </div>
+    <div class="mb-3">
+      <label>Imagen Actual</label><br>
+      <img src="/images/uploads/productos/{{producto.dataValues.imagen}}" alt="Imagen Actual" width="80">
+    </div>
+    <div class="mb-3">
+      <label>Nueva Imagen (opcional)</label>
+      <input type="file" name="producto" class="form-control">
+    </div>
+    <div class="mb-3">
+      <label>Categoría</label>
+      <select name="id_categoria" class="form-control" required>
+        <option value="">Seleccione una categoría</option>
+        {{#each categorias}}
+          <option value="{{this.dataValues.id}}" {{#if (eq this.dataValues.id ../producto.dataValues.id_categoria)}}selected{{/if}}>{{this.dataValues.nombre}}</option>
+        {{/each}}
+      </select>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/comercio/productos" class="btn btn-secondary">Volver</a>
+      <button type="submit" class="btn btn-success">Guardar Cambios</button>
+    </div>
+  </form>
+</div>

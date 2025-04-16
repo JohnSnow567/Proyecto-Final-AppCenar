@@ -1,0 +1,65 @@
+<div class="container mt-4" style="max-width: 700px;">
+  <h1 class="mb-4">Mis pedidos</h1>
+
+  <!-- Menú de navegación -->
+  <nav class="mb-4 gap-2">
+    <a href="/comercio/home" class="btn btn-primary">Home del Comercio</a>
+    <a href="/comercio/perfil" class="btn btn-secondary">Perfil del Comercio</a>
+    <a href="/comercio/categorias" class="btn btn-secondary">Mantenimiento de Categorías</a>
+    <a href="/comercio/productos" class="btn btn-secondary">Mantenimiento de Productos</a>
+    <a href="/comercio/logout" class="btn btn-danger ms-auto">Cerrar sesión</a>
+  </nav>
+
+  {{#if error}}
+    <div class="alert alert-danger">{{error}}</div>
+  {{/if}}
+
+  {{#if pedidos.length}}
+    <!-- Iteración sobre cada pedido -->
+    {{#each pedidos}}
+      <div class="card mb-3 p-3" style="border-radius: 8px;">
+        <div class="row g-0">
+          <!-- Columna para el logo del comercio -->
+          <div class="col-auto">
+            <img src="/images/uploads/logos/{{../comercio.dataValues.logo}}" 
+                class="img-fluid rounded-start" 
+                alt="Logo del Comercio" 
+                style="width: 150px; height: auto;">
+          </div>
+          <!-- Columna para el contenido -->
+          <div class="col">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="badge 
+                    {{#if (eq this.estado 'pendiente')}}bg-warning 
+                    {{else if (eq this.estado 'en proceso')}}bg-info 
+                    {{else}}bg-success{{/if}}
+                    text-dark mb-1">
+                    {{this.estado}}
+                  </span>
+                  <h5 class="mt-1 fw-bold">{{../comercio.dataValues.nombre_comercio}}</h5>
+                  <div class="text-muted small">{{this.fecha_hora}}</div>
+                  <p class="mb-1">
+                    RD$ {{this.total}} 
+                    - {{this.cantidadProductos}} productos
+                  </p>
+                </div>
+                <div class="text-end">
+                  <a href="/comercio/order/{{this.id}}" class="btn btn-link text-decoration-none px-0">Ver detalle</a>
+                  {{#if (eq this.estado "pendiente")}}
+                    <form action="/comercio/order/{{this.id}}/assignDelivery" method="POST" style="display:inline;">
+                      <button type="submit" class="btn btn-success btn-sm">Asignar Delivery</button>
+                    </form>
+                  {{/if}}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{/each}}
+  {{else}}
+    <p>No hay pedidos registrados.</p>
+  {{/if}}
+</div>

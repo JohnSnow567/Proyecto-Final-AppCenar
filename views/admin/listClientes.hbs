@@ -1,0 +1,49 @@
+<div class="container mt-4">
+  <h1>Listado de Clientes</h1>
+
+  {{#if error}}
+    <div class="alert alert-danger">{{error}}</div>
+  {{/if}}
+
+  <table class="table table-bordered mt-3">
+    <thead class="table-dark">
+      <tr>
+        <th>Nombre</th>
+        <th>Apellido</th>
+        <th>Teléfono</th>
+        <th>Correo</th>
+        <th>Pedidos</th>
+        <th>Estado</th>
+        <th>Acción</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each usuarios}}
+      <tr>
+        <td>{{this.dataValues.nombre}}</td>
+        <td>{{this.dataValues.apellido}}</td>
+        <td>{{this.dataValues.telefono}}</td>
+        <td>{{this.dataValues.correo}}</td>
+        <td>{{this.dataValues.pedidoCount}}</td>
+        <td>
+          {{#if (eq this.dataValues.estado 'activo')}}
+            <span class="badge bg-success">Activo</span>
+          {{else}}
+            <span class="badge bg-danger">Inactivo</span>
+          {{/if}}
+        </td>
+        <td>
+          <form action="/admin/clientes/toggle/{{this.dataValues.id}}" method="POST">
+            {{#if (eq this.dataValues.estado 'activo')}}
+              <button class="btn btn-warning btn-sm" type="submit">Inactivar</button>
+            {{else}}
+              <button class="btn btn-success btn-sm" type="submit">Activar</button>
+            {{/if}}
+          </form>
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+    <a href="/admin/dashboard" class="btn btn-secondary">Volver</a>
+</div>

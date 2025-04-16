@@ -1,0 +1,22 @@
+<div class="container mt-4">
+  <h1>Crear Categoría</h1>
+
+  {{#if error}}
+    <div class="alert alert-danger">{{error}}</div>
+  {{/if}}
+
+  <form action="/comercio/categorias/create" method="POST">
+    <div class="mb-3">
+      <label>Nombre de la Categoría</label>
+      <input type="text" name="nombre" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label>Descripción</label>
+      <input type="text" name="descripcion" class="form-control" required>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/comercio/categorias" class="btn btn-secondary">Volver</a>
+      <button type="submit" class="btn btn-success">Crear Categoría</button>
+    </div>
+  </form>
+</div>
