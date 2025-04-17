@@ -13,26 +13,16 @@
       </div>
     </div>
     <div class="col-md-9">
-      <h2 class="mb-4">{{comercio.nombre}}</h2>
-      <div class="row">
-        {{#each productos}}
-        <div class="col-md-4 mb-4">
-          <div class="card h-100">
-            <img src="{{foto}}" class="card-img-top" alt="{{nombre}}">
-            <div class="card-body">
-              <h5 class="card-title">{{nombre}}</h5>
-              <p class="card-text">{{descripcion}}</p>
-              <p class="text-success font-weight-bold">RD$ {{precio}}</p>
-            </div>
-            <div class="card-footer bg-white">
-              <button class="btn btn-sm btn-primary add-to-cart" data-producto="{{id}}">
-                Añadir al carrito
-              </button>
-            </div>
-          </div>
+      <h2 class="mb-4">{{comercio.nombre_comercio}}</h2>
+      {{#each categorias}}
+        <h4 class="mt-4">{{nombre}}</h4>
+        <div class="row">
+          {{#each productos}}
+            <div class="col-md-4 mb-4">
+              </div>
+          {{/each}}
         </div>
-        {{/each}}
-      </div>
+      {{/each}}
     </div>
   </div>
 </div>

@@ -5,6 +5,14 @@ const path = require('path');
 const transporter = require('../config/mailer');
 
 // Helper para calcular totales del carrito
+const calculateCartTotals = (carrito) => {
+  const subtotal = carrito.reduce((sum, item) => sum + (item.producto.precio * item.cantidad), 0);
+  const itbis = subtotal * 0.18; // 18% ITBIS
+  const total = subtotal + itbis;
+  return { subtotal, itbis, total };
+};
+
+// Helper para calcular totales del carrito
 const calculateTotals = async (carrito) => {
   const config = await Configuracion.findOne();
   const subtotal = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
@@ -294,7 +302,96 @@ module.exports = {
     }
 },
 
- // Método listarPedidos actualizado
+// Agregar producto al carrito 
+addToCart: async (req, res) => {
+  try {
+      const { id } = req.params; // ID del producto
+      const { cantidad } = req.body || 1; 
+
+      // Buscar producto
+      const producto = await Producto.findByPk(id, {
+          attributes: ['id', 'nombre', 'precio', 'imagen']
+      });
+
+      if (!producto) {
+          req.flash('error_msg', 'Producto no encontrado');
+          return res.redirect('back');
+      }
+
+      // Inicializar carrito si no existe
+      if (!req.session.carrito) {
+          req.session.carrito = [];
+      }
+
+      // Verificar si el producto ya está en el carrito
+      const itemIndex = req.session.carrito.findIndex(item => item.producto.id === producto.id);
+      
+      if (itemIndex >= 0) {
+          // Actualizar cantidad si ya existe
+          req.session.carrito[itemIndex].cantidad += parseInt(cantidad);
+      } else {
+          // Agregar nuevo item
+          req.session.carrito.push({
+              producto: producto.get({ plain: true }),
+              cantidad: parseInt(cantidad)
+          });
+      }
+
+      req.flash('success_msg', 'Producto agregado al carrito');
+      res.redirect('back');
+  } catch (error) {
+      console.error('Error al agregar al carrito:', error);
+      req.flash('error_msg', 'Error al agregar al carrito');
+      res.redirect('back');
+  }
+},
+
+// Eliminar producto del carrito
+removeFromCart: (req, res) => {
+  try {
+      const { id } = req.params; // ID del producto
+
+      if (!req.session.carrito) {
+          req.flash('error_msg', 'El carrito está vacío');
+          return res.redirect('back');
+      }
+
+      // Filtrar para remover el producto
+      req.session.carrito = req.session.carrito.filter(item => item.producto.id !== parseInt(id));
+
+      req.flash('success_msg', 'Producto removido del carrito');
+      res.redirect('back');
+  } catch (error) {
+      console.error('Error al remover del carrito:', error);
+      req.flash('error_msg', 'Error al remover del carrito');
+      res.redirect('back');
+  }
+},
+
+// Ver carrito actual
+viewCart: (req, res) => {
+  try {
+      const carrito = req.session.carrito || [];
+      const { subtotal, itbis, total } = calculateCartTotals(carrito);
+
+      res.render('cliente/carrito', {
+          title: 'Mi Carrito',
+          carrito,
+          subtotal,
+          itbis,
+          total,
+          user: req.session.user
+      });
+  } catch (error) {
+      console.error('Error al ver carrito:', error);
+      res.status(500).render('error', {
+          message: 'Error al cargar el carrito',
+          title: 'Error'
+      });
+  }
+},
+
+ // listarPedidos 
 listarPedidos: async (req, res) => {
   try {
     const pedidos = await Pedido.findAll({
@@ -400,27 +497,36 @@ mostrarDetallePedido: async (req, res) => {
   // Controlador para el catálogo
   catalogo: async (req, res) => {
     try {
-      const categorias = await Categoria.findAll({
+      const { id_comercio } = req.query; // Asegúrate de recibir el ID del comercio
+  
+      const comercio = await Comercio.findByPk(id_comercio, {
+        attributes: ['id', 'nombre_comercio', 'logo'],
         include: [{
-          model: Producto,
-          as: 'productos',
+          model: Categoria,
+          as: 'categorias',
           include: [{
-            model: Comercio,
-            as: 'comercio',
-            attributes: ['id', 'nombre']
+            model: Producto,
+            as: 'productos',
+            attributes: ['id', 'nombre', 'descripcion', 'precio', 'imagen']
           }]
         }]
       });
-
+  
+      if (!comercio) {
+        req.flash('error_msg', 'Comercio no encontrado');
+        return res.redirect('/cliente/home');
+      }
+  
       res.render('cliente/catalogo', {
-        title: 'Catálogo de Productos',
-        categorias,
+        title: `Catálogo - ${comercio.nombre_comercio}`,
+        comercio,
+        categorias: comercio.categorias,
         user: req.session.user
       });
     } catch (error) {
       console.error('Error al cargar el catálogo:', error);
       res.status(500).render('error', {
-        message: 'Error al cargar el catálogo de productos',
+        message: 'Error al cargar el catálogo',
         title: 'Error'
       });
     }

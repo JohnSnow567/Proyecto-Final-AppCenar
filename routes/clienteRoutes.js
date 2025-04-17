@@ -4,12 +4,21 @@ const clienteController = require('../controllers/clienteController');
 const upload = require('../middlewares/upload');
 const { checkCliente } = require('../middlewares/authMiddleware');
 const checkAddress = require('../middlewares/checkAddress');
+const carritoMiddleware = require('../middlewares/carritoMiddleware');
+
+//middleware para carrito
+router.use(carritoMiddleware);
 
 // Middleware para verificar rol de cliente
 router.use(checkCliente);
 
 // Home (ahora en la raíz)
 router.get('/home', clienteController.home);
+
+// Carrito de compras
+router.post('/carrito/agregar/:id', clienteController.addToCart);
+router.post('/carrito/remover/:id', clienteController.removeFromCart);
+router.get('/carrito', clienteController.viewCart);
 
 // Catálogo
 router.get('/catalogo', clienteController.catalogo);
