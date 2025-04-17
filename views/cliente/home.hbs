@@ -18,10 +18,11 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" href="/cliente/favoritos">Mis favoritos</a>
-          </li>
           <li class="nav-item">
-            <a class="nav-link" href="/logout">Cerrar sesión</a>
-          </li>
+            <form action="/cliente/logout" method="POST" class="d-inline">
+              <button type="submit" class="nav-link btn btn-link">Cerrar sesión</button>
+            </form>
+         </li>
         </ul>
       </div>
     </div>

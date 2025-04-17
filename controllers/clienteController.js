@@ -427,43 +427,55 @@ mostrarDetallePedido: async (req, res) => {
   },
 
   // Método para confirmar pedido
-  confirmarPedido: async (req, res) => {
-    try {
-      const { direccionId, notas, itbisPercent, total } = req.body;
-      
-      if (!direccionId) {
-        req.flash('error_msg', 'Selecciona una dirección de entrega');
-        return res.redirect('/cliente/carrito');
-      }
-
-      const totals = await calculateTotals(req.session.carrito);
-      
-      // Crear el pedido en la base de datos
-      const nuevoPedido = await Pedido.create({
-        id_cliente: req.session.user.id,
-        id_direccion: direccionId,
-        notas,
-        subtotal: totals.subtotal,
-        itbis: totals.itbis,
-        total: totals.total,
-        estado: 'pendiente'
-      });
-
-      // Enviar correo de confirmación
-      const mailOptions = {
-        from: 'appcenar@example.com',
-        to: req.session.user.correo,
-        subject: '¡Pedido Recibido!',
-        html: `<p>Tu pedido #${nuevoPedido.id} está en proceso. Total: RD$ ${totals.total}</p>`
-      };
-      await transporter.sendMail(mailOptions);
-
-      req.flash('success_msg', 'Pedido confirmado correctamente');
-      res.redirect('/cliente/pedidos');
-    } catch (error) {
-      console.error('Error al confirmar pedido:', error);
-      req.flash('error_msg', 'Error al confirmar el pedido');
-      res.redirect('/cliente/carrito');
+confirmarPedido: async (req, res) => {
+  try {
+    const { direccionId, notas, itbisPercent, total } = req.body;
+    
+    if (!direccionId) {
+      req.flash('error_msg', 'Selecciona una dirección de entrega');
+      return res.redirect('/cliente/carrito');
     }
+
+    const totals = await calculateTotals(req.session.carrito);
+    
+    // Crear el pedido en la base de datos
+    const nuevoPedido = await Pedido.create({
+      id_cliente: req.session.user.id,
+      id_direccion: direccionId,
+      notas,
+      subtotal: totals.subtotal,
+      itbis: totals.itbis,
+      total: totals.total,
+      estado: 'pendiente'
+    });
+
+    // Enviar correo de confirmación
+    const mailOptions = {
+      from: 'appcenar@example.com',
+      to: req.session.user.correo,
+      subject: '¡Pedido Recibido!',
+      html: `<p>Tu pedido #${nuevoPedido.id} está en proceso. Total: RD$ ${totals.total}</p>`
+    };
+    await transporter.sendMail(mailOptions);
+
+    req.flash('success_msg', 'Pedido confirmado correctamente');
+    res.redirect('/cliente/pedidos');
+  } catch (error) {
+    console.error('Error al confirmar pedido:', error);
+    req.flash('error_msg', 'Error al confirmar el pedido');
+    res.redirect('/cliente/carrito');
   }
+},  
+
+// Cerrar sesión
+cerrarSesion: (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Error al cerrar sesión:', err);
+      return res.redirect('/cliente/home');
+    }
+    res.clearCookie('connect.sid'); // Limpiar la cookie de sesión
+    res.redirect('/login'); // Redireccionar al login
+  });
+}
 };

@@ -39,4 +39,7 @@ router.get('/favoritos', clienteController.listarFavoritos);
 router.post('/favoritos/:id_comercio/agregar', clienteController.agregarFavorito);
 router.post('/favoritos/:id/eliminar', clienteController.eliminarFavorito);
 
+//cierre de seccion
+router.post('/logout', clienteController.cerrarSesion);
+
 module.exports = router;
