@@ -49,6 +49,7 @@ const hbs = exphbs.create({
     },
     eq: (a, b) => a === b,
     neq: (a, b) => a !== b,
+    gte: (a, b) => a >= b,
     multiply: (a, b) => a * b,
     calculateTax: (amount, percent) => (amount * (percent / 100)).toFixed(2),
     add: (a, b) => a + b,
@@ -86,8 +87,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 const authRoutes = require('./routes/authRoutes');
 const deliveryRoutes = require('./routes/deliveryRoutes');
 const clienteRoutes = require('./routes/clienteRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+const comercioRoutes = require('./routes/comercioRoutes')
+
+
 
 app.use('/', authRoutes);
+app.use('/', adminRoutes);
+app.use('/', comercioRoutes);
 app.use('/delivery', deliveryRoutes);
 app.use('/cliente', clienteRoutes);
 

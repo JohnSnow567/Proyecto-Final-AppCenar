@@ -392,142 +392,138 @@ module.exports = {
     }
   },
 
-  // listarPedidos 
-  listarPedidos: async (req, res, next) => {
-    try {
-      const pedidos = await Pedido.findAll({
-        where: { id_cliente: req.session.user.id },
-        include: [
-          { 
-            model: Comercio, 
-            as: 'comercio', 
-            attributes: ['id', 'nombre_comercio', 'logo'] 
-          },
-          { 
-            model: Direccion,
-            as: 'direccion',
-            attributes: ['id', 'nombre', 'descripcion']
-          },
-          {
-            model: Producto,
-            as: 'productos',
-            through: {
-              attributes: ['cantidad', 'precio_unitario'],
-              as: 'detalle'
-            },
-            attributes: ['id', 'nombre', 'descripcion']
-          }
-        ],
-        order: [['fecha_hora', 'DESC']]
-      });
+// listarPedidos 
+listarPedidos: async (req, res) => {
+  try {
+    // 1) Traer la configuración
+    const configuracion = await Configuracion.findOne({ where: { id: 1 } });
+    const itbisPct = parseFloat(configuracion.itbis);
 
-      const pedidosPlain = pedidos.map(pedido => pedido.get({ plain: true }));
-
-      res.render('cliente/pedidos', {
-        title: 'Mis Pedidos',
-        pedidos: pedidosPlain,
-        user: req.session.user
-      });
-    } catch (error) {
-      next(new DBError('Error al cargar la lista de pedidos', error));
-    }
-  },
-
-  // Método mostrarDetallePedido
-  mostrarDetallePedido: async (req, res, next) => {
-    try {
-      const pedido = await Pedido.findOne({
-        where: {
-          id: req.params.id,
-          id_cliente: req.session.user.id
+    // 2) Traer los pedidos y sus asociaciones
+    const pedidos = await Pedido.findAll({
+      where: { id_cliente: req.session.user.id },
+      include: [
+        { 
+          model: Comercio, 
+          as: 'comercio', 
+          attributes: ['id', 'nombre_comercio', 'logo'] 
         },
-        include: [
-          { 
-            model: Comercio, 
-            as: 'comercio', 
-            attributes: ['id', 'nombre_comercio', 'telefono', 'logo'] 
+        { 
+          model: Direccion,
+          as: 'direccion',
+          attributes: ['id', 'nombre', 'descripcion']
+        },
+        {
+          model: Producto,
+          as: 'productos',
+          through: {
+            attributes: ['cantidad', 'precio_unitario'],
+            as: 'detalle'
           },
-          { 
-            model: Direccion,
-            as: 'direccion',
-            attributes: ['id', 'nombre', 'descripcion']
-          },
-          {
-            model: Producto,
-            as: 'productos',
-            through: {
-              attributes: ['cantidad', 'precio_unitario'],
-              as: 'detalle'
-            },
-            attributes: ['id', 'nombre', 'descripcion', 'imagen']
-          }
-        ]
-      });
+          attributes: ['id', 'nombre', 'descripcion']
+        }
+      ],
+      order: [['fecha_hora', 'DESC']]
+    });
 
-      if (!pedido) {
-        throw new AppError('Pedido no encontrado', 404);
-      }
+    // 3) Convertir a objeto plano y calcular totales
+    const pedidosConTotales = pedidos.map(p => {
+      const pedido = p.get({ plain: true });
 
-      const pedidoPlain = pedido.get({ plain: true });
-      pedidoPlain.subtotal = pedidoPlain.productos.reduce((sum, producto) => {
-        return sum + (producto.detalle.cantidad * producto.detalle.precio_unitario);
+      // subtotal = suma(cantidad * precio_unitario)
+      pedido.subtotal = pedido.productos.reduce((sum, prod) => {
+        return sum + (prod.detalle.cantidad * prod.detalle.precio_unitario);
       }, 0);
-      
-      pedidoPlain.itbis = pedidoPlain.subtotal * 0.18;
-      pedidoPlain.total = pedidoPlain.subtotal + pedidoPlain.itbis;
 
-      res.render('cliente/detallePedido', {
-        title: `Pedido #${pedidoPlain.id}`,
-        pedido: pedidoPlain,
-        user: req.session.user
-      });
-    } catch (error) {
-      next(new DBError('Error al cargar el detalle del pedido', error));
+      // itbis y totalWithITBIS
+      pedido.itbisAmount = parseFloat((pedido.subtotal * (itbisPct / 100)).toFixed(2));
+      pedido.totalWithITBIS = parseFloat((pedido.subtotal + pedido.itbisAmount).toFixed(2));
+
+      return pedido;
+    });
+
+    res.render('cliente/pedidos', {
+      title: 'Mis Pedidos',
+      pedidos: pedidosConTotales,
+      configuracion,
+      user: req.session.user
+    });
+  } catch (error) {
+    console.error('Error al listar pedidos:', error);
+    res.status(500).render('error', {
+      message: 'Error al cargar la lista de pedidos',
+      title: 'Error'
+    });
+  }
+},
+
+// Método mostrarDetallePedido
+mostrarDetallePedido: async (req, res) => {
+  try {
+    // 1) Buscar configuración
+    const configuracion = await Configuracion.findOne({ where: { id: 1 } });
+    const itbisPct = parseFloat(configuracion.itbis);
+
+    // 2) Traer el pedido con sus asociaciones
+    const pedidoInstance = await Pedido.findOne({
+      where: {
+        id: req.params.id,
+        id_cliente: req.session.user.id
+      },
+      include: [
+        { 
+          model: Comercio, 
+          as: 'comercio', 
+          attributes: ['id', 'nombre_comercio', 'telefono', 'logo'] 
+        },
+        { 
+          model: Direccion,
+          as: 'direccion',
+          attributes: ['id', 'nombre', 'descripcion']
+        },
+        {
+          model: Producto,
+          as: 'productos',
+          through: {
+            attributes: ['cantidad', 'precio_unitario'],
+            as: 'detalle'
+          },
+          attributes: ['id', 'nombre', 'descripcion', 'imagen']
+        }
+      ]
+    });
+
+    if (!pedidoInstance) {
+      req.flash('error_msg', 'Pedido no encontrado');
+      return res.redirect('/cliente/pedidos');
     }
-  },
 
-  // Listado de comercios por tipo
-  listarComercios: async (req, res, next) => {
-    try {
-      const { tipo, search } = req.query;
-      
-      if (!tipo) {
-        throw new AppError('Debes seleccionar un tipo de comercio', 400);
-      }
+    // 3) Convertir y calcular totales
+    const pedido = pedidoInstance.get({ plain: true });
 
-      const tipoComercio = await TipoComercio.findByPk(tipo);
-      if (!tipoComercio) {
-        throw new AppError('Tipo de comercio no encontrado', 404);
-      }
+    pedido.subtotal = pedido.productos.reduce((sum, prod) => {
+      return sum + (prod.detalle.cantidad * prod.detalle.precio_unitario);
+    }, 0);
 
-      const whereConditions = {
-        id_tipo_comercio: tipo,
-        activo: true
-      };
+    pedido.itbisAmount = parseFloat((pedido.subtotal * (itbisPct / 100)).toFixed(2));
+    pedido.totalWithITBIS = parseFloat((pedido.subtotal + pedido.itbisAmount).toFixed(2));
 
-      if (search) {
-        whereConditions.nombre_comercio = {
-          [Op.like]: `%${search}%`
-        };
-      }
+    // 4) Encontrar la dirección seleccionada
+    const direccion = pedido.cliente?.direcciones?.find(d => d.id === pedido.id_direccion);
 
-      const comercios = await Comercio.findAll({
-        where: whereConditions,
-        attributes: ['id', 'nombre_comercio', 'descripcion', 'logo'],
-        order: [['nombre_comercio', 'ASC']]
-      });
-
-      res.render('cliente/listadoComercios', {
-        title: `Comercios - ${tipoComercio.nombre}`,
-        tipoComercio,
-        comercios,
-        search: search || '',
-        user: req.session.user
-      });
-    } catch (error) {
-      next(new DBError('Error al cargar el listado de comercios', error));
-    }
-  },
+    res.render('cliente/detallePedido', {
+      title: `Pedido #${pedido.id}`,
+      pedido,
+      direccion,
+      configuracion,
+      user: req.session.user
+    });
+  } catch (error) {
+    console.error('Error al mostrar detalle del pedido:', error);
+    req.flash('error_msg', 'Error al cargar el detalle del pedido');
+    res.redirect('/cliente/pedidos');
+  }
+},
 
   // catálogo
   catalogo: async (req, res, next) => {
