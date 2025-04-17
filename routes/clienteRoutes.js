@@ -18,6 +18,7 @@ router.get('/home', clienteController.home);
 // Carrito de compras
 router.post('/carrito/agregar/:id', clienteController.addToCart);
 router.post('/carrito/remover/:id', clienteController.removeFromCart);
+router.get('/carrito/count', clienteController.getCartCount);
 router.get('/carrito', clienteController.viewCart);
 
 // Listado de comercios

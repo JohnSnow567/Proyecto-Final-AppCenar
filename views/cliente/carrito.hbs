@@ -1,5 +1,13 @@
 <div class="container mt-4">
-    <h2>Mi Carrito</h2>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-shopping-cart mr-2"></i>
+            Mi Carrito
+        </h2>
+        <span class="badge badge-primary badge-pill py-2 px-3" id="dynamicCartCount">
+            {{carritoCount}} {{#if (eq carritoCount 1)}}producto{{else}}productos{{/if}}
+        </span>
+    </div>
     
     {{#if carrito.length}}
         <div class="row">
@@ -19,7 +27,7 @@
                                 <div>
                                     <span class="badge badge-primary badge-pill">{{cantidad}}</span>
                                     <form action="/cliente/carrito/remover/{{producto.id}}" method="POST" class="d-inline ml-2">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger btn-remove-item">
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
@@ -49,8 +57,10 @@
                             <span>Total:</span>
                             <span>RD$ {{total}}</span>
                         </div>
-                        <a href="/cliente/confirmar-pedido" class="btn btn-success btn-block mt-3">
-                            Continuar
+                        <a href="/cliente/pedidos/confirmar" class="btn btn-success btn-block mt-3 btn-checkout">
+                            <i class="fas fa-arrow-right mr-2"></i>
+                            Proceder al pago
+                            <i class="fas fa-lock ml-2"></i>
                         </a>
                     </div>
                 </div>
@@ -61,7 +71,19 @@
             Tu carrito está vacío. <a href="/cliente/catalogo">¡Agrega productos!</a>
         </div>
     {{/if}}
-</div> 
+</div>
+
+<style>
+  .btn-checkout {
+    transition: all 0.3s;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+  .btn-checkout:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  }
+</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {

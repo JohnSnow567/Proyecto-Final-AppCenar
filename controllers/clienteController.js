@@ -408,6 +408,19 @@ removeFromCart: (req, res) => {
   }
 },
 
+// Obtener conteo de productos en el carrito
+getCartCount: async (req, res) => {
+  try {
+    const count = req.session.carrito 
+      ? req.session.carrito.reduce((total, item) => total + item.cantidad, 0)
+      : 0;
+    res.json({ count });
+  } catch (error) {
+    console.error('Error al obtener conteo del carrito:', error);
+    res.status(500).json({ error: 'Error al obtener conteo' });
+  }
+},
+
 // Ver carrito actual
 viewCart: async (req, res) => {
   try {

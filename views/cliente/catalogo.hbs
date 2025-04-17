@@ -54,3 +54,51 @@
     <i class="fas fa-arrow-left mr-2"></i> Volver al inicio
   </a>
 </div>
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1000">
+  <div id="cartToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i class="fas fa-check-circle me-2"></i>
+        <span id="toastMessage">Producto agregado al carrito</span>
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Notificación al agregar al carrito
+document.addEventListener('DOMContentLoaded', function() {
+  const cartToast = new bootstrap.Toast(document.getElementById('cartToast'));
+  
+  document.querySelectorAll('form[action^="/cliente/carrito/agregar"]').forEach(form => {
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      try {
+        const response = await fetch(this.action, {
+          method: 'POST',
+          body: new FormData(this)
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('toastMessage').textContent = data.message || 'Producto agregado al carrito';
+          cartToast.show();
+          
+          // Actualizar contador en navbar si existe
+          const cartCounter = document.querySelector('.cart-counter');
+          if (cartCounter) {
+            const response = await fetch('/cliente/carrito/count');
+            const { count } = await response.json();
+            cartCounter.textContent = count;
+          }
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    });
+  });
+});
+</script>
