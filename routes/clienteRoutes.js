@@ -3,7 +3,7 @@ const router = express.Router();
 const clienteController = require('../controllers/clienteController');
 const upload = require('../middlewares/upload');
 const { checkCliente } = require('../middlewares/authMiddleware');
-const checkAddress = require('../middlewares/checkAddress');
+const { hasAddress, ownsAddress } = require('../middlewares/checkAddress');
 const carritoMiddleware = require('../middlewares/carritoMiddleware');
 
 //middleware para carrito
@@ -30,7 +30,7 @@ router.get('/catalogo', clienteController.catalogo);
 // Pedidos
 router.get('/pedidos', clienteController.listarPedidos);
 router.get('/pedidos/:id', clienteController.mostrarDetallePedido);
-router.post('/pedidos/confirmar', checkAddress, clienteController.confirmarPedido);
+router.post('/pedidos/confirmar', hasAddress, clienteController.confirmarPedido);
 
 // Perfil
 router.route('/perfil')
@@ -43,9 +43,9 @@ router.route('/direcciones/nueva')
   .get(clienteController.mostrarFormDireccion)
   .post(clienteController.crearDireccion);
 router.route('/direcciones/:id/editar')
-  .get(clienteController.mostrarFormDireccion)
-  .post(clienteController.actualizarDireccion);
-router.post('/direcciones/:id/eliminar', clienteController.eliminarDireccion);
+  .get(ownsAddress, clienteController.mostrarFormDireccion)
+  .post(ownsAddress, clienteController.actualizarDireccion);
+router.post('/direcciones/:id/eliminar', ownsAddress, clienteController.eliminarDireccion);
 
 // Favoritos
 router.get('/favoritos', clienteController.listarFavoritos);
