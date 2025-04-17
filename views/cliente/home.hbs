@@ -1,6 +1,5 @@
 <div class="container mt-4">
-    <!-- Menú de navegación -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
     <div class="container-fluid">
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -22,7 +21,7 @@
             <form action="/cliente/logout" method="POST" class="d-inline">
               <button type="submit" class="nav-link btn btn-link">Cerrar sesión</button>
             </form>
-         </li>
+           </li>
         </ul>
       </div>
     </div>
@@ -33,7 +32,7 @@
   <div class="row mb-4">
     {{#each tiposComercio}}
     <div class="col-md-3 mb-3">
-      <a href="/comercios?tipo={{id}}" class="card text-center h-100 text-decoration-none">
+      <a href="/cliente/comercios?tipo={{id}}" class="card text-center h-100 text-decoration-none">
         <div class="card-body">
           <i class="{{icono}} fa-3x mb-3"></i>
           <h5 class="card-title">{{nombre}}</h5>
@@ -42,7 +41,6 @@
     </div>
     {{/each}}
   </div>
-
   <div class="card mb-4">
     <div class="card-header">
       <h5>Últimos Pedidos</h5>

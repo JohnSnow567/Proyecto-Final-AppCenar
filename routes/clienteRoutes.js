@@ -20,6 +20,9 @@ router.post('/carrito/agregar/:id', clienteController.addToCart);
 router.post('/carrito/remover/:id', clienteController.removeFromCart);
 router.get('/carrito', clienteController.viewCart);
 
+// Listado de comercios
+router.get('/comercios', clienteController.listarComercios);
+
 // Catálogo
 router.get('/catalogo', clienteController.catalogo);
 

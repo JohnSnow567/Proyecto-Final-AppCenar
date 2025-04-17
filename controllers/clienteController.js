@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const fs = require('fs');
 const path = require('path');
 const transporter = require('../config/mailer');
+const { Op } = require('sequelize');
 
 // Helper para calcular totales del carrito
 const calculateCartTotals = async (carrito) => {
@@ -534,10 +535,65 @@ mostrarDetallePedido: async (req, res) => {
   }
 },
 
+// Listado de comercios por tipo
+listarComercios: async (req, res) => {
+  try {
+    const { tipo, search } = req.query;
+    
+    // Validar que se proporcionó un tipo
+    if (!tipo) {
+      return res.redirect('/cliente/home');
+    }
+
+    // Obtener el tipo de comercio
+    const tipoComercio = await TipoComercio.findByPk(tipo);
+    if (!tipoComercio) {
+      req.flash('error_msg', 'Tipo de comercio no encontrado');
+      return res.redirect('/cliente/home');
+    }
+
+    // Configurar condiciones de búsqueda
+    const whereConditions = {
+      id_tipo_comercio: tipo,
+      activo: true
+    };
+
+    if (search) {
+      whereConditions.nombre_comercio = {
+        [Op.like]: `%${search}%`
+      };
+    }
+
+    // Obtener comercios
+    const comercios = await Comercio.findAll({
+      where: whereConditions,
+      attributes: ['id', 'nombre_comercio', 'descripcion', 'logo'],
+      order: [['nombre_comercio', 'ASC']]
+    });
+
+    res.render('cliente/listadoComercios', {
+      title: `Comercios - ${tipoComercio.nombre}`,
+      tipoComercio,
+      comercios,
+      search: search || '',
+      user: req.session.user
+    });
+  } catch (error) {
+    console.error('Error al listar comercios:', error);
+    req.flash('error_msg', 'Error al cargar el listado de comercios');
+    res.redirect('/cliente/home');
+  }
+},
+
   // catálogo
   catalogo: async (req, res) => {
     try {
-      const { id_comercio } = req.query; // Asegúrate de recibir el ID del comercio
+      const { id_comercio } = req.query;
+  
+      if (!id_comercio) {
+        req.flash('error_msg', 'Debes seleccionar un comercio');
+        return res.redirect('/cliente/home');
+      }
   
       const comercio = await Comercio.findByPk(id_comercio, {
         attributes: ['id', 'nombre_comercio', 'logo'],
@@ -547,7 +603,8 @@ mostrarDetallePedido: async (req, res) => {
           include: [{
             model: Producto,
             as: 'productos',
-            attributes: ['id', 'nombre', 'descripcion', 'precio', 'imagen']
+            attributes: ['id', 'nombre', 'descripcion', 'precio', 'imagen'],
+            where: { activo: true }
           }]
         }]
       });

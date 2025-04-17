@@ -38,6 +38,15 @@ const hbs = exphbs.create({
   extname: '.hbs',
   helpers: {
     formatDate: (date) => date ? new Date(date).toLocaleString() : 'N/A',
+    formatDateTime: function(date) {
+      return new Date(date).toLocaleString('es-ES', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    },
     eq: (a, b) => a === b,
     neq: (a, b) => a !== b,
     multiply: (a, b) => a * b,
