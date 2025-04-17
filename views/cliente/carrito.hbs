@@ -62,3 +62,21 @@
         </div>
     {{/if}}
 </div> 
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Confirmar eliminación de producto
+  document.querySelectorAll('.btn-remove-item').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      if (confirm('¿Estás seguro que deseas eliminar este producto de tu carrito?')) {
+        const form = this.closest('form');
+        if (form) {
+          form.submit();
+        }
+      }
+    });
+  });
+});
+</script>
