@@ -5,11 +5,12 @@ const path = require('path');
 const transporter = require('../config/mailer');
 
 // Helper para calcular totales del carrito
-const calculateCartTotals = (carrito) => {
+const calculateCartTotals = async (carrito) => {
+  const config = await Configuracion.findOne();
   const subtotal = carrito.reduce((sum, item) => sum + (item.producto.precio * item.cantidad), 0);
-  const itbis = subtotal * 0.18; // 18% ITBIS
+  const itbis = subtotal * (config.itbis / 100);
   const total = subtotal + itbis;
-  return { subtotal, itbis, total };
+  return { subtotal, itbis, total, itbisPercent: config.itbis };
 };
 
 // Helper para calcular totales del carrito
@@ -134,21 +135,37 @@ module.exports = {
     }
   },
 
-  // Eliminar dirección
-  eliminarDireccion: async (req, res) => {
-    try {
+  // Método eliminarDireccion 
+eliminarDireccion: async (req, res) => {
+  try {
+      // Verificación adicional
+      const direccion = await Direccion.findOne({
+          where: { 
+              id: req.params.id,
+              id_cliente: req.session.user.id 
+          }
+      });
+
+      if (!direccion) {
+          req.flash('error_msg', 'Dirección no encontrada o no tienes permisos');
+          return res.redirect('/cliente/direcciones');
+      }
+
       await Direccion.destroy({
-        where: { id: req.params.id, id_cliente: req.session.user.id }
+          where: { 
+              id: req.params.id,
+              id_cliente: req.session.user.id 
+          }
       });
 
       req.flash('success_msg', 'Dirección eliminada correctamente');
       res.redirect('/cliente/direcciones');
-    } catch (error) {
+  } catch (error) {
       console.error('Error al eliminar dirección:', error);
       req.flash('error_msg', 'Error al eliminar la dirección');
       res.redirect('/cliente/direcciones');
-    }
-  },
+  }
+},
 
   // Listar favoritos del cliente
   listarFavoritos: async (req, res) => {
@@ -240,6 +257,12 @@ module.exports = {
 
   actualizarPerfil: async (req, res) => {
     try {
+        // Verificación adicional de seguridad
+        if (req.params.id && parseInt(req.params.id) !== req.session.user.id) {
+            req.flash('error_msg', 'No tienes permiso para editar este perfil');
+            return res.redirect('/cliente/perfil');
+        }
+
         const { nombre, apellido, telefono, password, confirmPassword } = req.body;
 
         if (!nombre || !apellido || !telefono) {
@@ -249,6 +272,17 @@ module.exports = {
 
         if (password && password !== confirmPassword) {
             req.flash('error_msg', 'Las contraseñas no coinciden');
+            return res.redirect('/cliente/perfil');
+        }
+
+        // Verificar que el usuario existe y pertenece al cliente
+        const usuarioExistente = await Usuario.findOne({
+            where: { id: req.session.user.id },
+            attributes: ['id']
+        });
+
+        if (!usuarioExistente) {
+            req.flash('error_msg', 'Usuario no encontrado');
             return res.redirect('/cliente/perfil');
         }
 
@@ -283,6 +317,11 @@ module.exports = {
 
         // Actualizar sesión
         const updatedUser = await Usuario.findByPk(req.session.user.id);
+        if (!updatedUser) {
+            req.session.destroy();
+            return res.redirect('/login');
+        }
+
         req.session.user = {
             id: updatedUser.id,
             nombre: updatedUser.nombre,
@@ -369,25 +408,26 @@ removeFromCart: (req, res) => {
 },
 
 // Ver carrito actual
-viewCart: (req, res) => {
+viewCart: async (req, res) => {
   try {
-      const carrito = req.session.carrito || [];
-      const { subtotal, itbis, total } = calculateCartTotals(carrito);
+    const carrito = req.session.carrito || [];
+    const { subtotal, itbis, total, itbisPercent } = await calculateCartTotals(carrito);
 
-      res.render('cliente/carrito', {
-          title: 'Mi Carrito',
-          carrito,
-          subtotal,
-          itbis,
-          total,
-          user: req.session.user
-      });
+    res.render('cliente/carrito', {
+      title: 'Mi Carrito',
+      carrito,
+      subtotal,
+      itbis,
+      total,
+      itbisPercent,
+      user: req.session.user
+    });
   } catch (error) {
-      console.error('Error al ver carrito:', error);
-      res.status(500).render('error', {
-          message: 'Error al cargar el carrito',
-          title: 'Error'
-      });
+    console.error('Error al ver carrito:', error);
+    res.status(500).render('error', {
+      message: 'Error al cargar el carrito',
+      title: 'Error'
+    });
   }
 },
 
@@ -494,7 +534,7 @@ mostrarDetallePedido: async (req, res) => {
   }
 },
 
-  // Controlador para el catálogo
+  // catálogo
   catalogo: async (req, res) => {
     try {
       const { id_comercio } = req.query; // Asegúrate de recibir el ID del comercio
@@ -533,16 +573,19 @@ mostrarDetallePedido: async (req, res) => {
   },
 
   // Método para confirmar pedido
-confirmarPedido: async (req, res) => {
-  try {
-    const { direccionId, notas, itbisPercent, total } = req.body;
-    
-    if (!direccionId) {
-      req.flash('error_msg', 'Selecciona una dirección de entrega');
-      return res.redirect('/cliente/carrito');
-    }
-
-    const totals = await calculateTotals(req.session.carrito);
+  confirmarPedido: async (req, res) => {
+    try {
+      const { direccionId, notas } = req.body;
+      
+      if (!direccionId) {
+        req.flash('error_msg', 'Selecciona una dirección de entrega');
+        return res.redirect('/cliente/carrito');
+      }
+  
+      const config = await Configuracion.findOne();
+      const subtotal = req.session.carrito.reduce((sum, item) => sum + (item.producto.precio * item.cantidad), 0);
+      const itbis = subtotal * (config.itbis / 100);
+      const total = subtotal + itbis;
     
     // Crear el pedido en la base de datos
     const nuevoPedido = await Pedido.create({

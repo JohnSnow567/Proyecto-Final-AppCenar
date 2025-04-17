@@ -13,16 +13,44 @@
       </div>
     </div>
     <div class="col-md-9">
-      <h2 class="mb-4">{{comercio.nombre_comercio}}</h2>
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{comercio.nombre_comercio}}</h2>
+        <img src="{{comercio.logo}}" alt="Logo" width="80" class="rounded">
+      </div>
+      
       {{#each categorias}}
-        <h4 class="mt-4">{{nombre}}</h4>
-        <div class="row">
-          {{#each productos}}
+        <div class="mb-5">
+          <h4 class="mb-3 border-bottom pb-2">{{nombre}}</h4>
+          <div class="row">
+            {{#each productos}}
             <div class="col-md-4 mb-4">
+              <div class="card h-100">
+                <img src="{{imagen}}" class="card-img-top" alt="{{nombre}}" style="height: 150px; object-fit: cover;">
+                <div class="card-body">
+                  <h5 class="card-title">{{nombre}}</h5>
+                  <p class="card-text text-muted small">{{descripcion}}</p>
+                  <p class="h5 text-primary">RD$ {{precio}}</p>
+                </div>
+                <div class="card-footer bg-white">
+                  <form action="/cliente/carrito/agregar/{{id}}" method="POST">
+                    <input type="hidden" name="cantidad" value="1">
+                    <button type="submit" class="btn btn-primary btn-block">
+                      <i class="fas fa-cart-plus"></i> Agregar
+                    </button>
+                  </form>
+                </div>
               </div>
-          {{/each}}
+            </div>
+            {{/each}}
+          </div>
         </div>
       {{/each}}
     </div>
   </div>
+</div>
+
+<div class="text-center mt-4">
+  <a href="/cliente/home" class="btn btn-secondary">
+    <i class="fas fa-arrow-left mr-2"></i> Volver al inicio
+  </a>
 </div>
