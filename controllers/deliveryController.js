@@ -88,33 +88,15 @@ module.exports = {
   // Completar un pedido
   completarPedido: async (req, res) => {
     try {
-      const pedido = await Pedido.findOne({
-        where: { 
-          id: req.params.id, 
-          id_delivery: req.session.user.id,
-          estado: 'en proceso'
-        }
-      });
-
-      if (!pedido) {
-        return res.status(404).render('error', { 
-          message: 'Pedido no encontrado o no se puede completar',
-          title: 'Error'
-        });
-      }
-
-      await db.sequelize.transaction(async (t) => {
-        await pedido.update({ estado: 'completado' }, { transaction: t });
-        await Usuario.update(
-          { estado: 'activo' }, 
-          { 
-            where: { id: req.session.user.id },
-            transaction: t 
-          }
-        );
-      });
-
-      req.flash('success', 'Pedido marcado como completado');
+      const pedido = await Pedido.findByPk(req.params.id);
+      await pedido.update({ estado: 'completado' });
+      
+      // Actualiza estado del delivery
+      await Usuario.update(
+        { estado: 'activo' },
+        { where: { id: req.session.user.id } }
+      );
+      
       res.redirect('/delivery');
     } catch (error) {
       console.error('Error en completarPedido:', error);

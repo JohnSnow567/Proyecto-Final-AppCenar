@@ -1,12 +1,14 @@
-const { TipoComercio, Comercio, Direccion, Favorito, Pedido, Producto, Categoria, Usuario } = require('../models');
+const { TipoComercio, Comercio, Direccion, Favorito, Pedido, Producto, Categoria, Usuario, Configuracion } = require('../models');
 const bcrypt = require('bcrypt');
 const fs = require('fs');
 const path = require('path');
+const transporter = require('../config/mailer');
 
 // Helper para calcular totales del carrito
-const calculateTotals = (carrito, itbisPercent) => {
+const calculateTotals = async (carrito) => {
+  const config = await Configuracion.findOne();
   const subtotal = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
-  const itbis = subtotal * (itbisPercent / 100);
+  const itbis = subtotal * (config.itbis / 100);
   const total = subtotal + itbis;
   return { subtotal, itbis, total };
 };
@@ -61,13 +63,30 @@ module.exports = {
   },
 
   // Mostrar formulario de dirección 
-  mostrarFormDireccion: (req, res) => {
-    res.render('cliente/formDireccion', {
-      title: req.params.id ? 'Editar Dirección' : 'Nueva Dirección',
-      direccion: null,
-      user: req.session.user
-    });
-  },
+  mostrarFormDireccion: async (req, res) => {
+    try {
+        const direccion = req.params.id 
+            ? await Direccion.findOne({
+                where: { 
+                    id: req.params.id,
+                    id_cliente: req.session.user.id 
+                }
+              })
+            : null;
+
+        res.render('cliente/direcciones', {
+            title: req.params.id ? 'Editar Dirección' : 'Nueva Dirección',
+            direccion,
+            user: req.session.user
+        });
+    } catch (error) {
+        console.error('Error al mostrar formulario dirección:', error);
+        res.status(500).render('error', {
+            message: 'Error al cargar el formulario',
+            title: 'Error'
+        });
+    }
+},
 
   // Crear nueva dirección
   crearDireccion: async (req, res) => {
@@ -211,69 +230,69 @@ module.exports = {
     }
   },
 
-  // Actualizar perfil del cliente
   actualizarPerfil: async (req, res) => {
     try {
-      const { nombre, apellido, telefono, password, confirmPassword } = req.body;
+        const { nombre, apellido, telefono, password, confirmPassword } = req.body;
 
-      if (!nombre || !apellido || !telefono) {
-        req.flash('error_msg', 'Nombre, apellido y teléfono son requeridos');
-        return res.redirect('/cliente/perfil');
-      }
-
-      if (password && password !== confirmPassword) {
-        req.flash('error_msg', 'Las contraseñas no coinciden');
-        return res.redirect('/cliente/perfil');
-      }
-
-      const updateData = {
-        nombre,
-        apellido,
-        telefono
-      };
-
-      // Manejo de la foto
-      if (req.file) {
-        // Eliminar foto anterior si existe
-        const usuario = await Usuario.findByPk(req.session.user.id);
-        if (usuario.foto) {
-          const fotoPath = path.join(__dirname, '../public', usuario.foto);
-          if (fs.existsSync(fotoPath)) {
-            fs.unlinkSync(fotoPath);
-          }
+        if (!nombre || !apellido || !telefono) {
+            req.flash('error_msg', 'Nombre, apellido y teléfono son requeridos');
+            return res.redirect('/cliente/perfil');
         }
 
-        updateData.foto = `/uploads/${req.file.filename}`;
-      }
+        if (password && password !== confirmPassword) {
+            req.flash('error_msg', 'Las contraseñas no coinciden');
+            return res.redirect('/cliente/perfil');
+        }
 
-      // Manejo de contraseña
-      if (password) {
-        const salt = await bcrypt.genSalt(10);
-        updateData.contrasena = await bcrypt.hash(password, salt);
-      }
+        const updateData = {
+            nombre,
+            apellido,
+            telefono
+        };
 
-      await Usuario.update(updateData, {
-        where: { id: req.session.user.id }
-      });
+        // Manejo de la foto
+        if (req.file) {
+            // Eliminar foto anterior si existe
+            const usuario = await Usuario.findByPk(req.session.user.id);
+            if (usuario.foto && usuario.foto !== '/img/default-profile.png') {
+                const fotoPath = path.join(__dirname, '../public', usuario.foto);
+                if (fs.existsSync(fotoPath)) {
+                    fs.unlinkSync(fotoPath);
+                }
+            }
+            updateData.foto = `/images/uploads/perfiles/${req.file.filename}`;
+        }
 
-      // Actualizar sesión
-      const updatedUser = await Usuario.findByPk(req.session.user.id);
-      req.session.user = {
-        ...req.session.user,
-        nombre: updatedUser.nombre,
-        apellido: updatedUser.apellido,
-        telefono: updatedUser.telefono,
-        foto: updatedUser.foto
-      };
+        // Manejo de contraseña
+        if (password) {
+            const salt = await bcrypt.genSalt(10);
+            updateData.contrasena = await bcrypt.hash(password, salt);
+        }
 
-      req.flash('success_msg', 'Perfil actualizado correctamente');
-      res.redirect('/cliente/perfil');
+        await Usuario.update(updateData, {
+            where: { id: req.session.user.id }
+        });
+
+        // Actualizar sesión
+        const updatedUser = await Usuario.findByPk(req.session.user.id);
+        req.session.user = {
+            id: updatedUser.id,
+            nombre: updatedUser.nombre,
+            apellido: updatedUser.apellido,
+            correo: updatedUser.correo,
+            telefono: updatedUser.telefono,
+            foto: updatedUser.foto,
+            rol: updatedUser.rol
+        };
+
+        req.flash('success_msg', 'Perfil actualizado correctamente');
+        res.redirect('/cliente/perfil');
     } catch (error) {
-      console.error('Error al actualizar perfil:', error);
-      req.flash('error_msg', 'Error al actualizar el perfil');
-      res.redirect('/cliente/perfil');
+        console.error('Error al actualizar perfil:', error);
+        req.flash('error_msg', 'Error al actualizar el perfil');
+        res.redirect('/cliente/perfil');
     }
-  },
+},
 
  // Método listarPedidos actualizado
 listarPedidos: async (req, res) => {
@@ -282,17 +301,17 @@ listarPedidos: async (req, res) => {
       where: { id_cliente: req.session.user.id },
       include: [
         { 
-          model: db.Comercio, 
+          model: Comercio, 
           as: 'comercio', 
           attributes: ['id', 'nombre_comercio', 'logo'] 
         },
         { 
-          model: db.Direccion,
+          model: Direccion,
           as: 'direccion',
           attributes: ['id', 'nombre', 'descripcion']
         },
         {
-          model: db.Producto,
+          model: Producto,
           as: 'productos',
           through: {
             attributes: ['cantidad', 'precio_unitario'],
@@ -331,17 +350,17 @@ mostrarDetallePedido: async (req, res) => {
       },
       include: [
         { 
-          model: db.Comercio, 
+          model: Comercio, 
           as: 'comercio', 
           attributes: ['id', 'nombre_comercio', 'telefono', 'logo'] 
         },
         { 
-          model: db.Direccion,
+          model: Direccion,
           as: 'direccion',
           attributes: ['id', 'nombre', 'descripcion']
         },
         {
-          model: db.Producto,
+          model: Producto,
           as: 'productos',
           through: {
             attributes: ['cantidad', 'precio_unitario'],
@@ -404,6 +423,47 @@ mostrarDetallePedido: async (req, res) => {
         message: 'Error al cargar el catálogo de productos',
         title: 'Error'
       });
+    }
+  },
+
+  // Método para confirmar pedido
+  confirmarPedido: async (req, res) => {
+    try {
+      const { direccionId, notas, itbisPercent, total } = req.body;
+      
+      if (!direccionId) {
+        req.flash('error_msg', 'Selecciona una dirección de entrega');
+        return res.redirect('/cliente/carrito');
+      }
+
+      const totals = await calculateTotals(req.session.carrito);
+      
+      // Crear el pedido en la base de datos
+      const nuevoPedido = await Pedido.create({
+        id_cliente: req.session.user.id,
+        id_direccion: direccionId,
+        notas,
+        subtotal: totals.subtotal,
+        itbis: totals.itbis,
+        total: totals.total,
+        estado: 'pendiente'
+      });
+
+      // Enviar correo de confirmación
+      const mailOptions = {
+        from: 'appcenar@example.com',
+        to: req.session.user.correo,
+        subject: '¡Pedido Recibido!',
+        html: `<p>Tu pedido #${nuevoPedido.id} está en proceso. Total: RD$ ${totals.total}</p>`
+      };
+      await transporter.sendMail(mailOptions);
+
+      req.flash('success_msg', 'Pedido confirmado correctamente');
+      res.redirect('/cliente/pedidos');
+    } catch (error) {
+      console.error('Error al confirmar pedido:', error);
+      req.flash('error_msg', 'Error al confirmar el pedido');
+      res.redirect('/cliente/carrito');
     }
   }
 };

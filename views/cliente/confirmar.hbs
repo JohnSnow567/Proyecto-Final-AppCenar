@@ -30,11 +30,15 @@
         </div>
         <div class="card-body">
           <form action="/pedidos/confirmar" method="POST">
+            <input type="hidden" name="itbisPercent" value="{{itbisPercent}}">
+            <input type="hidden" name="total" value="{{totales.total}}">
             <div class="form-group">
               <label>Dirección de Entrega</label>
-              <select class="form-control" name="direccion" required>
+              <select class="form-control" name="direccionId" required>
                 {{#each direcciones}}
                 <option value="{{id}}">{{nombre}} - {{descripcion}}</option>
+                {{else}}
+                <option disabled>No tienes direcciones. ¡Crea una!</option>
                 {{/each}}
               </select>
             </div>

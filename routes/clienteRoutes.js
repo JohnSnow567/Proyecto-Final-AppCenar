@@ -3,6 +3,7 @@ const router = express.Router();
 const clienteController = require('../controllers/clienteController');
 const upload = require('../middlewares/upload');
 const { checkCliente } = require('../middlewares/authMiddleware');
+const checkAddress = require('../middlewares/checkAddress');
 
 // Middleware para verificar rol de cliente
 router.use(checkCliente);
@@ -16,6 +17,7 @@ router.get('/catalogo', clienteController.catalogo);
 // Pedidos
 router.get('/pedidos', clienteController.listarPedidos);
 router.get('/pedidos/:id', clienteController.mostrarDetallePedido);
+router.post('/pedidos/confirmar', checkAddress, clienteController.confirmarPedido);
 
 // Perfil
 router.route('/perfil')
