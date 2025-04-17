@@ -43,8 +43,20 @@
 
       {{!-- Se muestra el total calculado del pedido (pedido.total) --}}
       <div class="d-flex justify-content-between align-items-center">
+        <span class="fw-bold">Subtotal</span>
+        <span class="fw-bold">RD$ {{pedido.subtotal}}</span>
+      </div>
+
+      {{!-- Se muestra el total calculado del pedido (pedido.total) --}}
+      <div class="d-flex justify-content-between align-items-center">
+        <span class="fw-bold">ITBIS</span>
+        <span class="fw-bold">{{configuracion.itbis}}%</span>
+      </div>
+
+      {{!-- Se muestra el total calculado del pedido (pedido.total) --}}
+      <div class="d-flex justify-content-between align-items-center">
         <span class="fw-bold">Total</span>
-        <span class="fw-bold">RD$ {{pedido.total}}</span>
+        <span class="fw-bold">RD$ {{pedido.totalWithITBIS}}</span>
       </div>
 
       {{!-- Si el pedido está pendiente, mostrar botón para asignar delivery --}}

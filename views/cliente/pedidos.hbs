@@ -8,7 +8,7 @@
         <div class="d-flex justify-content-between align-items-start">
           <!-- Sección izquierda: Comercio y productos -->
           <div class="d-flex">
-            <img src="{{comercio.logo}}" class="rounded mr-3" width="60" alt="{{comercio.nombre_comercio}}">
+            <img src="/images/uploads/logos/{{comercio.logo}}" class="rounded mr-3" width="150" alt="{{comercio.nombre_comercio}}">
             <div>
               <h5 class="mb-1">{{comercio.nombre_comercio}}</h5>
               <p class="mb-1 text-muted small">
@@ -17,7 +17,7 @@
               </p>
               <small class="text-muted">
                 <i class="far fa-clock mr-1"></i>
-                {{formatDateTime fecha_hora}}
+                {{formatDate fecha_hora}}
               </small>
             </div>
           </div>
@@ -25,9 +25,9 @@
           <!-- Sección derecha: Estado y total -->
           <div class="text-right">
             <span class="badge badge-{{#if (eq estado 'completado')}}success{{else if (eq estado 'en proceso')}}warning{{else}}secondary{{/if}} mb-2">
-              {{toUpperCase estado}}
+              {{estado}}
             </span>
-            <h5 class="mb-0 text-primary">RD$ {{total}}</h5>
+            <h5 class="mb-0 text-primary">RD$ {{./totalWithITBIS}}</h5>
           </div>
         </div>
 

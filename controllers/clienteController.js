@@ -431,9 +431,14 @@ viewCart: async (req, res) => {
   }
 },
 
- // listarPedidos 
+// listarPedidos 
 listarPedidos: async (req, res) => {
   try {
+    // 1) Traer la configuración
+    const configuracion = await Configuracion.findOne({ where: { id: 1 } });
+    const itbisPct = parseFloat(configuracion.itbis);
+
+    // 2) Traer los pedidos y sus asociaciones
     const pedidos = await Pedido.findAll({
       where: { id_cliente: req.session.user.id },
       include: [
@@ -460,12 +465,26 @@ listarPedidos: async (req, res) => {
       order: [['fecha_hora', 'DESC']]
     });
 
-    // Convertir a objeto plano para Handlebars
-    const pedidosPlain = pedidos.map(pedido => pedido.get({ plain: true }));
+    // 3) Convertir a objeto plano y calcular totales
+    const pedidosConTotales = pedidos.map(p => {
+      const pedido = p.get({ plain: true });
+
+      // subtotal = suma(cantidad * precio_unitario)
+      pedido.subtotal = pedido.productos.reduce((sum, prod) => {
+        return sum + (prod.detalle.cantidad * prod.detalle.precio_unitario);
+      }, 0);
+
+      // itbis y totalWithITBIS
+      pedido.itbisAmount = parseFloat((pedido.subtotal * (itbisPct / 100)).toFixed(2));
+      pedido.totalWithITBIS = parseFloat((pedido.subtotal + pedido.itbisAmount).toFixed(2));
+
+      return pedido;
+    });
 
     res.render('cliente/pedidos', {
       title: 'Mis Pedidos',
-      pedidos: pedidosPlain,
+      pedidos: pedidosConTotales,
+      configuracion,
       user: req.session.user
     });
   } catch (error) {
@@ -480,7 +499,12 @@ listarPedidos: async (req, res) => {
 // Método mostrarDetallePedido
 mostrarDetallePedido: async (req, res) => {
   try {
-    const pedido = await Pedido.findOne({
+    // 1) Buscar configuración
+    const configuracion = await Configuracion.findOne({ where: { id: 1 } });
+    const itbisPct = parseFloat(configuracion.itbis);
+
+    // 2) Traer el pedido con sus asociaciones
+    const pedidoInstance = await Pedido.findOne({
       where: {
         id: req.params.id,
         id_cliente: req.session.user.id
@@ -508,23 +532,29 @@ mostrarDetallePedido: async (req, res) => {
       ]
     });
 
-    if (!pedido) {
+    if (!pedidoInstance) {
       req.flash('error_msg', 'Pedido no encontrado');
       return res.redirect('/cliente/pedidos');
     }
 
-    // Calcular totales
-    const pedidoPlain = pedido.get({ plain: true });
-    pedidoPlain.subtotal = pedidoPlain.productos.reduce((sum, producto) => {
-      return sum + (producto.detalle.cantidad * producto.detalle.precio_unitario);
+    // 3) Convertir y calcular totales
+    const pedido = pedidoInstance.get({ plain: true });
+
+    pedido.subtotal = pedido.productos.reduce((sum, prod) => {
+      return sum + (prod.detalle.cantidad * prod.detalle.precio_unitario);
     }, 0);
-    
-    pedidoPlain.itbis = pedidoPlain.subtotal * 0.18; // 18% ITBIS
-    pedidoPlain.total = pedidoPlain.subtotal + pedidoPlain.itbis;
+
+    pedido.itbisAmount = parseFloat((pedido.subtotal * (itbisPct / 100)).toFixed(2));
+    pedido.totalWithITBIS = parseFloat((pedido.subtotal + pedido.itbisAmount).toFixed(2));
+
+    // 4) Encontrar la dirección seleccionada
+    const direccion = pedido.cliente?.direcciones?.find(d => d.id === pedido.id_direccion);
 
     res.render('cliente/detallePedido', {
-      title: `Pedido #${pedidoPlain.id}`,
-      pedido: pedidoPlain,
+      title: `Pedido #${pedido.id}`,
+      pedido,
+      direccion,
+      configuracion,
       user: req.session.user
     });
   } catch (error) {

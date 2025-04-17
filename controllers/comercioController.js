@@ -1,4 +1,4 @@
-const { Comercio, Pedido, Categoria, Producto, Usuario, DetallePedido} = require('../models');
+const { Comercio, Pedido, Categoria, Producto, Usuario, DetallePedido, Configuracion} = require('../models');
 const { Op, fn, col } = require('sequelize');
 const bcrypt = require('bcrypt');
 
@@ -44,10 +44,26 @@ module.exports = {
             return { ...pedidoObj, cantidadProductos: totalCantidad };
             });
 
+            const configuracion = await Configuracion.findOne({ where: {id: 1}});
+            const itbisPct = parseFloat(configuracion.itbis);
+
+            // añadimos campo itbisAmount y totalWithITBIS a cada pedido
+            const pedidosConITBIS = pedidosConCount.map(pedido => {
+              const baseTotal = parseFloat(pedido.total);
+              const itbisAmount = parseFloat((baseTotal * (itbisPct / 100)).toFixed(2));
+              const totalWithITBIS = parseFloat((baseTotal + itbisAmount).toFixed(2));
+              return {
+                ...pedido,
+                itbisAmount,
+                totalWithITBIS
+              };
+            });
+            
+
             res.render('comercio/home', { 
             title: 'Home del Comercio', 
             comercio, 
-            pedidos: pedidosConCount 
+            pedidos: pedidosConITBIS
             });
         } catch (error) {
             console.error("Error en home de comercio:", error);
@@ -73,7 +89,21 @@ module.exports = {
           if (!pedidoInstance) return res.redirect('/comercio/home');
           
           const pedido = pedidoInstance.toJSON();
-          res.render('comercio/orderDetail', { title: 'Detalle del Pedido', pedido });
+
+          // 3) Traemos la configuración para el ITBIS
+          const configuracion = await Configuracion.findOne({ where: { id: 1 } });
+          const itbisPct = parseFloat(configuracion.itbis);
+
+          // 4) Calculamos el monto de ITBIS y el total con ITBIS
+          const baseTotal = parseFloat(pedido.total);
+          const itbisAmount = parseFloat((baseTotal * (itbisPct / 100)).toFixed(2));
+          const totalWithITBIS = parseFloat((baseTotal + itbisAmount).toFixed(2));
+
+          // 5) Extendemos el objeto pedido con los nuevos campos
+          pedido.itbisAmount = itbisAmount;
+          pedido.totalWithITBIS = totalWithITBIS;
+
+          res.render('comercio/orderDetail', { title: 'Detalle del Pedido', pedido, configuracion });
         } catch (error) {
           console.error("Error en orderDetail:", error);
           res.redirect('/comercio/home');

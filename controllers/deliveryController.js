@@ -1,4 +1,4 @@
-const { Pedido, Comercio, Usuario, Direccion, Producto, DetallePedido } = require('../models');
+const { Pedido, Comercio, Usuario, Direccion, Producto, DetallePedido, Configuracion } = require('../models');
 
 module.exports = {
   // Home del delivery
@@ -53,6 +53,7 @@ module.exports = {
           },
           { 
             model: Producto,
+            as: 'productos',
             through: { 
               attributes: ['cantidad'],
               as: 'pedido_producto'
@@ -69,11 +70,21 @@ module.exports = {
       }
 
       const direccion = pedido.cliente.direcciones.find(d => d.id === pedido.id_direccion);
+      const configuracion = await Configuracion.findOne({ where: { id: 1 } });
+      const itbisPct = parseFloat(configuracion.itbis);
+
+      // 2) Calcular ITBIS y total con ITBIS
+      const subtotal = parseFloat(pedido.subtotal);
+      const itbisAmount = parseFloat((subtotal * (itbisPct / 100)).toFixed(2));
+      const totalConItbis = parseFloat((subtotal + itbisAmount).toFixed(2));
 
       res.render('delivery/detallePedido', { 
         user: req.session.user,
         pedido,
         direccion,
+        configuracion,
+        itbisAmount,
+        totalConItbis,
         title: `Pedido #${pedido.id}`
       });
     } catch (error) {

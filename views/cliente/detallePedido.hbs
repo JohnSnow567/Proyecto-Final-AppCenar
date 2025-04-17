@@ -12,11 +12,11 @@
           <div class="d-flex justify-content-between mb-3">
             <div>
               <h6>Fecha:</h6>
-              <p>{{formatDate pedido.fecha}}</p>
+              <p>{{formatDate pedido.fecha_hora}}</p>
             </div>
             <div>
               <h6>Comercio:</h6>
-              <p>{{pedido.comercio.nombre}}</p>
+              <p>{{pedido.comercio.nombre_comercio}}</p>
             </div>
           </div>
 
@@ -36,8 +36,8 @@
                 <tr>
                   <td>
                     <div class="d-flex align-items-center">
-                      {{#if foto}}
-                      <img src="{{foto}}" width="50" class="mr-3" alt="{{nombre}}">
+                      {{#if imagen}}
+                      <img src="/images/uploads/productos/{{imagen}}" width="50" class="mr-3" alt="{{nombre}}">
                       {{/if}}
                       <div>
                         <h6 class="mb-0">{{nombre}}</h6>
@@ -45,11 +45,12 @@
                       </div>
                     </div>
                   </td>
-                  <td>{{cantidad}}</td>
-                  <td>RD$ {{precio}}</td>
-                  <td>RD$ {{subtotal}}</td>
+                  <td>{{detalle.cantidad}}</td>
+                  <td>RD$ {{detalle.precio_unitario}}</td>
+                  {{/each}}
+                  <td>RD$ {{pedido.subtotal}}</td>
                 </tr>
-                {{/each}}
+                
               </tbody>
             </table>
           </div>
@@ -62,12 +63,12 @@
                   <span>RD$ {{pedido.subtotal}}</span>
                 </div>
                 <div class="d-flex justify-content-between mb-2">
-                  <span>ITBIS ({{pedido.itbisPercent}}%):</span>
-                  <span>RD$ {{pedido.itbis}}</span>
+                  <span>ITBIS ({{configuracion.itbis}}%):</span>
+                  <span>RD$ {{pedido.itbisAmount}}</span>
                 </div>
                 <div class="d-flex justify-content-between font-weight-bold h5">
                   <span>Total:</span>
-                  <span>RD$ {{pedido.total}}</span>
+                  <span>RD$ {{pedido.totalWithITBIS}}</span>
                 </div>
               </div>
             </div>
@@ -114,46 +115,13 @@
         </div>
         <div class="card-body">
           <div class="timeline">
-            <div class="timeline-step {{#if (gte pedido.estadoProgress 1)}}active{{/if}}">
+            <div class="timeline-step {{#if (gte pedido.estado 1)}}active{{/if}}">
               <div class="timeline-icon">
                 <i class="fas fa-shopping-cart"></i>
               </div>
               <div class="timeline-content">
                 <h6>Pedido Realizado</h6>
-                <small>{{formatDate pedido.fecha}}</small>
-              </div>
-            </div>
-            <div class="timeline-step {{#if (gte pedido.estadoProgress 2)}}active{{/if}}">
-              <div class="timeline-icon">
-                <i class="fas fa-utensils"></i>
-              </div>
-              <div class="timeline-content">
-                <h6>En Preparación</h6>
-                {{#if pedido.fechaPreparacion}}
-                <small>{{formatDate pedido.fechaPreparacion}}</small>
-                {{/if}}
-              </div>
-            </div>
-            <div class="timeline-step {{#if (gte pedido.estadoProgress 3)}}active{{/if}}">
-              <div class="timeline-icon">
-                <i class="fas fa-motorcycle"></i>
-              </div>
-              <div class="timeline-content">
-                <h6>En Camino</h6>
-                {{#if pedido.fechaEnCamino}}
-                <small>{{formatDate pedido.fechaEnCamino}}</small>
-                {{/if}}
-              </div>
-            </div>
-            <div class="timeline-step {{#if (gte pedido.estadoProgress 4)}}active{{/if}}">
-              <div class="timeline-icon">
-                <i class="fas fa-check-circle"></i>
-              </div>
-              <div class="timeline-content">
-                <h6>Entregado</h6>
-                {{#if pedido.fechaEntrega}}
-                <small>{{formatDate pedido.fechaEntrega}}</small>
-                {{/if}}
+                <small>{{formatDate pedido.fecha_hora}}</small>
               </div>
             </div>
           </div>

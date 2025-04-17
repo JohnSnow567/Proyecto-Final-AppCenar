@@ -7,7 +7,8 @@ module.exports = (sequelize, DataTypes) => {
       subtotal: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
       total: { type: DataTypes.DECIMAL(10, 2), allowNull: false },
       fecha_hora: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
-      estado: { type: DataTypes.ENUM('pendiente', 'en proceso', 'completado'), allowNull: false }
+      estado: { type: DataTypes.ENUM('pendiente', 'en proceso', 'completado'), allowNull: false },
+      id_direccion: { type: DataTypes.INTEGER, allowNull: true }
     }, {
       tableName: 'pedidos',
       timestamps: false
