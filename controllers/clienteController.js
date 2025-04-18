@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const transporter = require('../config/mailer');
 const { Op } = require('sequelize');
+const { DBError, AppError } = require('../utils/AppError');
 
 // Helper para calcular totales del carrito
 const calculateCartTotals = async (carrito) => {
@@ -25,7 +26,7 @@ const calculateTotals = async (carrito) => {
 
 module.exports = {
   // Home del cliente
-  home: async (req, res) => {
+  home: async (req, res, next) => {
     try {
       const tiposComercio = await TipoComercio.findAll({
         attributes: ['id', 'nombre', 'icono'],
@@ -43,16 +44,12 @@ module.exports = {
         user: req.session.user
       });
     } catch (error) {
-      console.error('Error en home cliente:', error);
-      res.status(500).render('error', {
-        message: 'Error al cargar la página de inicio',
-        title: 'Error'
-      });
+      next(new DBError('Error al cargar la página de inicio', error));
     }
   },
 
   // Listar direcciones del cliente
-  listarDirecciones: async (req, res) => {
+  listarDirecciones: async (req, res, next) => {
     try {
       const direcciones = await Direccion.findAll({
         where: { id_cliente: req.session.user.id }
@@ -64,16 +61,12 @@ module.exports = {
         user: req.session.user
       });
     } catch (error) {
-      console.error('Error al listar direcciones:', error);
-      res.status(500).render('error', {
-        message: 'Error al cargar las direcciones',
-        title: 'Error'
-      });
+      next(new DBError('Error al cargar las direcciones', error));
     }
   },
 
   // Mostrar formulario de dirección 
-  mostrarFormDireccion: async (req, res) => {
+  mostrarFormDireccion: async (req, res, next) => {
     try {
         const direccion = req.params.id 
             ? await Direccion.findOne({
@@ -90,16 +83,12 @@ module.exports = {
             user: req.session.user
         });
     } catch (error) {
-        console.error('Error al mostrar formulario dirección:', error);
-        res.status(500).render('error', {
-            message: 'Error al cargar el formulario',
-            title: 'Error'
-        });
+        next(new DBError('Error al cargar el formulario de dirección', error));
     }
-},
+  },
 
   // Crear nueva dirección
-  crearDireccion: async (req, res) => {
+  crearDireccion: async (req, res, next) => {
     try {
       await Direccion.create({
         id_cliente: req.session.user.id,
@@ -110,14 +99,12 @@ module.exports = {
       req.flash('success_msg', 'Dirección creada correctamente');
       res.redirect('/cliente/direcciones');
     } catch (error) {
-      console.error('Error al crear dirección:', error);
-      req.flash('error_msg', 'Error al crear la dirección');
-      res.redirect('/cliente/direcciones/nueva');
+      next(new DBError('Error al crear la dirección', error));
     }
   },
 
   // Actualizar dirección existente
-  actualizarDireccion: async (req, res) => {
+  actualizarDireccion: async (req, res, next) => {
     try {
       await Direccion.update(
         {
@@ -130,16 +117,13 @@ module.exports = {
       req.flash('success_msg', 'Dirección actualizada correctamente');
       res.redirect('/cliente/direcciones');
     } catch (error) {
-      console.error('Error al actualizar dirección:', error);
-      req.flash('error_msg', 'Error al actualizar la dirección');
-      res.redirect(`/cliente/direcciones/${req.params.id}/editar`);
+      next(new DBError('Error al actualizar la dirección', error));
     }
   },
 
   // Método eliminarDireccion 
-eliminarDireccion: async (req, res) => {
-  try {
-      // Verificación adicional
+  eliminarDireccion: async (req, res, next) => {
+    try {
       const direccion = await Direccion.findOne({
           where: { 
               id: req.params.id,
@@ -161,15 +145,13 @@ eliminarDireccion: async (req, res) => {
 
       req.flash('success_msg', 'Dirección eliminada correctamente');
       res.redirect('/cliente/direcciones');
-  } catch (error) {
-      console.error('Error al eliminar dirección:', error);
-      req.flash('error_msg', 'Error al eliminar la dirección');
-      res.redirect('/cliente/direcciones');
-  }
-},
+    } catch (error) {
+      next(new DBError('Error al eliminar la dirección', error));
+    }
+  },
 
   // Listar favoritos del cliente
-  listarFavoritos: async (req, res) => {
+  listarFavoritos: async (req, res, next) => {
     try {
       const favoritos = await Favorito.findAll({
         where: { id_cliente: req.session.user.id },
@@ -189,16 +171,12 @@ eliminarDireccion: async (req, res) => {
         user: req.session.user
       });
     } catch (error) {
-      console.error('Error al listar favoritos:', error);
-      res.status(500).render('error', {
-        message: 'Error al cargar los comercios favoritos',
-        title: 'Error'
-      });
+      next(new DBError('Error al cargar los comercios favoritos', error));
     }
   },
 
   // Agregar comercio a favoritos
-  agregarFavorito: async (req, res) => {
+  agregarFavorito: async (req, res, next) => {
     try {
       await Favorito.findOrCreate({
         where: {
@@ -210,14 +188,12 @@ eliminarDireccion: async (req, res) => {
       req.flash('success_msg', 'Comercio agregado a favoritos');
       res.redirect('back');
     } catch (error) {
-      console.error('Error al agregar favorito:', error);
-      req.flash('error_msg', 'Error al agregar a favoritos');
-      res.redirect('back');
+      next(new DBError('Error al agregar a favoritos', error));
     }
   },
 
   // Eliminar comercio de favoritos
-  eliminarFavorito: async (req, res) => {
+  eliminarFavorito: async (req, res, next) => {
     try {
       await Favorito.destroy({
         where: {
@@ -229,14 +205,12 @@ eliminarDireccion: async (req, res) => {
       req.flash('success_msg', 'Comercio eliminado de favoritos');
       res.redirect('/cliente/favoritos');
     } catch (error) {
-      console.error('Error al eliminar favorito:', error);
-      req.flash('error_msg', 'Error al eliminar de favoritos');
-      res.redirect('/cliente/favoritos');
+      next(new DBError('Error al eliminar de favoritos', error));
     }
   },
 
   // Mostrar perfil del cliente
-  mostrarPerfil: async (req, res) => {
+  mostrarPerfil: async (req, res, next) => {
     try {
       const usuario = await Usuario.findByPk(req.session.user.id, {
         attributes: ['id', 'nombre', 'apellido', 'correo', 'telefono', 'foto']
@@ -248,43 +222,33 @@ eliminarDireccion: async (req, res) => {
         user: req.session.user
       });
     } catch (error) {
-      console.error('Error al mostrar perfil:', error);
-      res.status(500).render('error', {
-        message: 'Error al cargar el perfil',
-        title: 'Error'
-      });
+      next(new DBError('Error al cargar el perfil', error));
     }
   },
 
-  actualizarPerfil: async (req, res) => {
+  actualizarPerfil: async (req, res, next) => {
     try {
-        // Verificación adicional de seguridad
         if (req.params.id && parseInt(req.params.id) !== req.session.user.id) {
-            req.flash('error_msg', 'No tienes permiso para editar este perfil');
-            return res.redirect('/cliente/perfil');
+            throw new AppError('No tienes permiso para editar este perfil', 403);
         }
 
         const { nombre, apellido, telefono, password, confirmPassword } = req.body;
 
         if (!nombre || !apellido || !telefono) {
-            req.flash('error_msg', 'Nombre, apellido y teléfono son requeridos');
-            return res.redirect('/cliente/perfil');
+            throw new AppError('Nombre, apellido y teléfono son requeridos', 400);
         }
 
         if (password && password !== confirmPassword) {
-            req.flash('error_msg', 'Las contraseñas no coinciden');
-            return res.redirect('/cliente/perfil');
+            throw new AppError('Las contraseñas no coinciden', 400);
         }
 
-        // Verificar que el usuario existe y pertenece al cliente
         const usuarioExistente = await Usuario.findOne({
             where: { id: req.session.user.id },
             attributes: ['id']
         });
 
         if (!usuarioExistente) {
-            req.flash('error_msg', 'Usuario no encontrado');
-            return res.redirect('/cliente/perfil');
+            throw new AppError('Usuario no encontrado', 404);
         }
 
         const updateData = {
@@ -293,9 +257,7 @@ eliminarDireccion: async (req, res) => {
             telefono
         };
 
-        // Manejo de la foto
         if (req.file) {
-            // Eliminar foto anterior si existe
             const usuario = await Usuario.findByPk(req.session.user.id);
             if (usuario.foto && usuario.foto !== '/img/default-profile.png') {
                 const fotoPath = path.join(__dirname, '../public', usuario.foto);
@@ -306,7 +268,6 @@ eliminarDireccion: async (req, res) => {
             updateData.foto = `/images/uploads/perfiles/${req.file.filename}`;
         }
 
-        // Manejo de contraseña
         if (password) {
             const salt = await bcrypt.genSalt(10);
             updateData.contrasena = await bcrypt.hash(password, salt);
@@ -316,7 +277,6 @@ eliminarDireccion: async (req, res) => {
             where: { id: req.session.user.id }
         });
 
-        // Actualizar sesión
         const updatedUser = await Usuario.findByPk(req.session.user.id);
         if (!updatedUser) {
             req.session.destroy();
@@ -336,276 +296,246 @@ eliminarDireccion: async (req, res) => {
         req.flash('success_msg', 'Perfil actualizado correctamente');
         res.redirect('/cliente/perfil');
     } catch (error) {
-        console.error('Error al actualizar perfil:', error);
-        req.flash('error_msg', 'Error al actualizar el perfil');
-        res.redirect('/cliente/perfil');
+        if (error.name === 'SequelizeValidationError') {
+            const messages = error.errors.map(e => e.message);
+            req.flash('error_msg', messages.join(', '));
+            return res.redirect('/cliente/perfil');
+        }
+        next(new DBError('Error al actualizar el perfil', error));
     }
-},
+  },
 
-// Agregar producto al carrito 
-addToCart: async (req, res) => {
-  try {
-      const { id } = req.params; // ID del producto
-      const { cantidad } = req.body || 1; 
+  // Agregar producto al carrito 
+  addToCart: async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const { cantidad } = req.body || 1; 
 
-      // Buscar producto
-      const producto = await Producto.findByPk(id, {
-          attributes: ['id', 'nombre', 'precio', 'imagen']
+        const producto = await Producto.findByPk(id, {
+            attributes: ['id', 'nombre', 'precio', 'imagen', 'activo'],
+            where: { activo: true }
+        });
+
+        if (!producto) {
+            throw new AppError('El producto no esta disponible', 404);
+        }
+
+        if (!req.session.carrito) {
+            req.session.carrito = [];
+        }
+
+        const itemIndex = req.session.carrito.findIndex(item => item.producto.id === producto.id);
+        
+        if (itemIndex >= 0) {
+            req.session.carrito[itemIndex].cantidad += parseInt(cantidad);
+        } else {
+            req.session.carrito.push({
+                producto: producto.get({ plain: true }),
+                cantidad: parseInt(cantidad)
+            });
+        }
+
+        req.flash('success_msg', 'Producto agregado al carrito');
+        res.redirect('back');
+    } catch (error) {
+        next(new DBError('Error al agregar al carrito', error));
+    }
+  },
+
+  // Eliminar producto del carrito
+  removeFromCart: (req, res, next) => {
+    try {
+        const { id } = req.params;
+
+        if (!req.session.carrito) {
+            throw new AppError('El carrito está vacío', 400);
+        }
+
+        req.session.carrito = req.session.carrito.filter(item => item.producto.id !== parseInt(id));
+
+        req.flash('success_msg', 'Producto removido del carrito');
+        res.redirect('back');
+    } catch (error) {
+        next(new DBError('Error al remover del carrito', error));
+    }
+  },
+
+  // Obtener conteo de productos en el carrito
+  getCartCount: async (req, res, next) => {
+    try {
+      const count = req.session.carrito 
+        ? req.session.carrito.reduce((total, item) => total + item.cantidad, 0)
+        : 0;
+      res.json({ count });
+    } catch (error) {
+      next(new DBError('Error al obtener conteo del carrito', error));
+    }
+  },
+
+  // Ver carrito actual
+  viewCart: async (req, res, next) => {
+    try {
+      const carrito = req.session.carrito || [];
+      const { subtotal, itbis, total, itbisPercent } = await calculateCartTotals(carrito);
+
+      res.render('cliente/carrito', {
+        title: 'Mi Carrito',
+        carrito,
+        subtotal,
+        itbis,
+        total,
+        itbisPercent,
+        user: req.session.user
+      });
+    } catch (error) {
+      next(new DBError('Error al cargar el carrito', error));
+    }
+  },
+
+  // listarPedidos 
+  listarPedidos: async (req, res, next) => {
+    try {
+      const pedidos = await Pedido.findAll({
+        where: { id_cliente: req.session.user.id },
+        include: [
+          { 
+            model: Comercio, 
+            as: 'comercio', 
+            attributes: ['id', 'nombre_comercio', 'logo'] 
+          },
+          { 
+            model: Direccion,
+            as: 'direccion',
+            attributes: ['id', 'nombre', 'descripcion']
+          },
+          {
+            model: Producto,
+            as: 'productos',
+            through: {
+              attributes: ['cantidad', 'precio_unitario'],
+              as: 'detalle'
+            },
+            attributes: ['id', 'nombre', 'descripcion']
+          }
+        ],
+        order: [['fecha_hora', 'DESC']]
       });
 
-      if (!producto) {
-          req.flash('error_msg', 'Producto no encontrado');
-          return res.redirect('back');
+      const pedidosPlain = pedidos.map(pedido => pedido.get({ plain: true }));
+
+      res.render('cliente/pedidos', {
+        title: 'Mis Pedidos',
+        pedidos: pedidosPlain,
+        user: req.session.user
+      });
+    } catch (error) {
+      next(new DBError('Error al cargar la lista de pedidos', error));
+    }
+  },
+
+  // Método mostrarDetallePedido
+  mostrarDetallePedido: async (req, res, next) => {
+    try {
+      const pedido = await Pedido.findOne({
+        where: {
+          id: req.params.id,
+          id_cliente: req.session.user.id
+        },
+        include: [
+          { 
+            model: Comercio, 
+            as: 'comercio', 
+            attributes: ['id', 'nombre_comercio', 'telefono', 'logo'] 
+          },
+          { 
+            model: Direccion,
+            as: 'direccion',
+            attributes: ['id', 'nombre', 'descripcion']
+          },
+          {
+            model: Producto,
+            as: 'productos',
+            through: {
+              attributes: ['cantidad', 'precio_unitario'],
+              as: 'detalle'
+            },
+            attributes: ['id', 'nombre', 'descripcion', 'imagen']
+          }
+        ]
+      });
+
+      if (!pedido) {
+        throw new AppError('Pedido no encontrado', 404);
       }
 
-      // Inicializar carrito si no existe
-      if (!req.session.carrito) {
-          req.session.carrito = [];
-      }
-
-      // Verificar si el producto ya está en el carrito
-      const itemIndex = req.session.carrito.findIndex(item => item.producto.id === producto.id);
+      const pedidoPlain = pedido.get({ plain: true });
+      pedidoPlain.subtotal = pedidoPlain.productos.reduce((sum, producto) => {
+        return sum + (producto.detalle.cantidad * producto.detalle.precio_unitario);
+      }, 0);
       
-      if (itemIndex >= 0) {
-          // Actualizar cantidad si ya existe
-          req.session.carrito[itemIndex].cantidad += parseInt(cantidad);
-      } else {
-          // Agregar nuevo item
-          req.session.carrito.push({
-              producto: producto.get({ plain: true }),
-              cantidad: parseInt(cantidad)
-          });
+      pedidoPlain.itbis = pedidoPlain.subtotal * 0.18;
+      pedidoPlain.total = pedidoPlain.subtotal + pedidoPlain.itbis;
+
+      res.render('cliente/detallePedido', {
+        title: `Pedido #${pedidoPlain.id}`,
+        pedido: pedidoPlain,
+        user: req.session.user
+      });
+    } catch (error) {
+      next(new DBError('Error al cargar el detalle del pedido', error));
+    }
+  },
+
+  // Listado de comercios por tipo
+  listarComercios: async (req, res, next) => {
+    try {
+      const { tipo, search } = req.query;
+      
+      if (!tipo) {
+        throw new AppError('Debes seleccionar un tipo de comercio', 400);
       }
 
-      req.flash('success_msg', 'Producto agregado al carrito');
-      res.redirect('back');
-  } catch (error) {
-      console.error('Error al agregar al carrito:', error);
-      req.flash('error_msg', 'Error al agregar al carrito');
-      res.redirect('back');
-  }
-},
-
-// Eliminar producto del carrito
-removeFromCart: (req, res) => {
-  try {
-      const { id } = req.params; // ID del producto
-
-      if (!req.session.carrito) {
-          req.flash('error_msg', 'El carrito está vacío');
-          return res.redirect('back');
+      const tipoComercio = await TipoComercio.findByPk(tipo);
+      if (!tipoComercio) {
+        throw new AppError('Tipo de comercio no encontrado', 404);
       }
 
-      // Filtrar para remover el producto
-      req.session.carrito = req.session.carrito.filter(item => item.producto.id !== parseInt(id));
-
-      req.flash('success_msg', 'Producto removido del carrito');
-      res.redirect('back');
-  } catch (error) {
-      console.error('Error al remover del carrito:', error);
-      req.flash('error_msg', 'Error al remover del carrito');
-      res.redirect('back');
-  }
-},
-
-// Obtener conteo de productos en el carrito
-getCartCount: async (req, res) => {
-  try {
-    const count = req.session.carrito 
-      ? req.session.carrito.reduce((total, item) => total + item.cantidad, 0)
-      : 0;
-    res.json({ count });
-  } catch (error) {
-    console.error('Error al obtener conteo del carrito:', error);
-    res.status(500).json({ error: 'Error al obtener conteo' });
-  }
-},
-
-// Ver carrito actual
-viewCart: async (req, res) => {
-  try {
-    const carrito = req.session.carrito || [];
-    const { subtotal, itbis, total, itbisPercent } = await calculateCartTotals(carrito);
-
-    res.render('cliente/carrito', {
-      title: 'Mi Carrito',
-      carrito,
-      subtotal,
-      itbis,
-      total,
-      itbisPercent,
-      user: req.session.user
-    });
-  } catch (error) {
-    console.error('Error al ver carrito:', error);
-    res.status(500).render('error', {
-      message: 'Error al cargar el carrito',
-      title: 'Error'
-    });
-  }
-},
-
- // listarPedidos 
-listarPedidos: async (req, res) => {
-  try {
-    const pedidos = await Pedido.findAll({
-      where: { id_cliente: req.session.user.id },
-      include: [
-        { 
-          model: Comercio, 
-          as: 'comercio', 
-          attributes: ['id', 'nombre_comercio', 'logo'] 
-        },
-        { 
-          model: Direccion,
-          as: 'direccion',
-          attributes: ['id', 'nombre', 'descripcion']
-        },
-        {
-          model: Producto,
-          as: 'productos',
-          through: {
-            attributes: ['cantidad', 'precio_unitario'],
-            as: 'detalle'
-          },
-          attributes: ['id', 'nombre', 'descripcion']
-        }
-      ],
-      order: [['fecha_hora', 'DESC']]
-    });
-
-    // Convertir a objeto plano para Handlebars
-    const pedidosPlain = pedidos.map(pedido => pedido.get({ plain: true }));
-
-    res.render('cliente/pedidos', {
-      title: 'Mis Pedidos',
-      pedidos: pedidosPlain,
-      user: req.session.user
-    });
-  } catch (error) {
-    console.error('Error al listar pedidos:', error);
-    res.status(500).render('error', {
-      message: 'Error al cargar la lista de pedidos',
-      title: 'Error'
-    });
-  }
-},
-
-// Método mostrarDetallePedido
-mostrarDetallePedido: async (req, res) => {
-  try {
-    const pedido = await Pedido.findOne({
-      where: {
-        id: req.params.id,
-        id_cliente: req.session.user.id
-      },
-      include: [
-        { 
-          model: Comercio, 
-          as: 'comercio', 
-          attributes: ['id', 'nombre_comercio', 'telefono', 'logo'] 
-        },
-        { 
-          model: Direccion,
-          as: 'direccion',
-          attributes: ['id', 'nombre', 'descripcion']
-        },
-        {
-          model: Producto,
-          as: 'productos',
-          through: {
-            attributes: ['cantidad', 'precio_unitario'],
-            as: 'detalle'
-          },
-          attributes: ['id', 'nombre', 'descripcion', 'imagen']
-        }
-      ]
-    });
-
-    if (!pedido) {
-      req.flash('error_msg', 'Pedido no encontrado');
-      return res.redirect('/cliente/pedidos');
-    }
-
-    // Calcular totales
-    const pedidoPlain = pedido.get({ plain: true });
-    pedidoPlain.subtotal = pedidoPlain.productos.reduce((sum, producto) => {
-      return sum + (producto.detalle.cantidad * producto.detalle.precio_unitario);
-    }, 0);
-    
-    pedidoPlain.itbis = pedidoPlain.subtotal * 0.18; // 18% ITBIS
-    pedidoPlain.total = pedidoPlain.subtotal + pedidoPlain.itbis;
-
-    res.render('cliente/detallePedido', {
-      title: `Pedido #${pedidoPlain.id}`,
-      pedido: pedidoPlain,
-      user: req.session.user
-    });
-  } catch (error) {
-    console.error('Error al mostrar detalle del pedido:', error);
-    req.flash('error_msg', 'Error al cargar el detalle del pedido');
-    res.redirect('/cliente/pedidos');
-  }
-},
-
-// Listado de comercios por tipo
-listarComercios: async (req, res) => {
-  try {
-    const { tipo, search } = req.query;
-    
-    // Validar que se proporcionó un tipo
-    if (!tipo) {
-      return res.redirect('/cliente/home');
-    }
-
-    // Obtener el tipo de comercio
-    const tipoComercio = await TipoComercio.findByPk(tipo);
-    if (!tipoComercio) {
-      req.flash('error_msg', 'Tipo de comercio no encontrado');
-      return res.redirect('/cliente/home');
-    }
-
-    // Configurar condiciones de búsqueda
-    const whereConditions = {
-      id_tipo_comercio: tipo,
-      activo: true
-    };
-
-    if (search) {
-      whereConditions.nombre_comercio = {
-        [Op.like]: `%${search}%`
+      const whereConditions = {
+        id_tipo_comercio: tipo,
+        activo: true
       };
+
+      if (search) {
+        whereConditions.nombre_comercio = {
+          [Op.like]: `%${search}%`
+        };
+      }
+
+      const comercios = await Comercio.findAll({
+        where: whereConditions,
+        attributes: ['id', 'nombre_comercio', 'descripcion', 'logo'],
+        order: [['nombre_comercio', 'ASC']]
+      });
+
+      res.render('cliente/listadoComercios', {
+        title: `Comercios - ${tipoComercio.nombre}`,
+        tipoComercio,
+        comercios,
+        search: search || '',
+        user: req.session.user
+      });
+    } catch (error) {
+      next(new DBError('Error al cargar el listado de comercios', error));
     }
-
-    // Obtener comercios
-    const comercios = await Comercio.findAll({
-      where: whereConditions,
-      attributes: ['id', 'nombre_comercio', 'descripcion', 'logo'],
-      order: [['nombre_comercio', 'ASC']]
-    });
-
-    res.render('cliente/listadoComercios', {
-      title: `Comercios - ${tipoComercio.nombre}`,
-      tipoComercio,
-      comercios,
-      search: search || '',
-      user: req.session.user
-    });
-  } catch (error) {
-    console.error('Error al listar comercios:', error);
-    req.flash('error_msg', 'Error al cargar el listado de comercios');
-    res.redirect('/cliente/home');
-  }
-},
+  },
 
   // catálogo
-  catalogo: async (req, res) => {
+  catalogo: async (req, res, next) => {
     try {
       const { id_comercio } = req.query;
   
       if (!id_comercio) {
-        req.flash('error_msg', 'Debes seleccionar un comercio');
-        return res.redirect('/cliente/home');
+        throw new AppError('Debes seleccionar un comercio', 400);
       }
   
       const comercio = await Comercio.findByPk(id_comercio, {
@@ -623,8 +553,7 @@ listarComercios: async (req, res) => {
       });
   
       if (!comercio) {
-        req.flash('error_msg', 'Comercio no encontrado');
-        return res.redirect('/cliente/home');
+        throw new AppError('Comercio no encontrado', 404);
       }
   
       res.render('cliente/catalogo', {
@@ -634,22 +563,17 @@ listarComercios: async (req, res) => {
         user: req.session.user
       });
     } catch (error) {
-      console.error('Error al cargar el catálogo:', error);
-      res.status(500).render('error', {
-        message: 'Error al cargar el catálogo',
-        title: 'Error'
-      });
+      next(new DBError('Error al cargar el catálogo', error));
     }
   },
 
   // Método para confirmar pedido
-  confirmarPedido: async (req, res) => {
+  confirmarPedido: async (req, res, next) => {
     try {
       const { direccionId, notas } = req.body;
       
       if (!direccionId) {
-        req.flash('error_msg', 'Selecciona una dirección de entrega');
-        return res.redirect('/cliente/carrito');
+        throw new AppError('Selecciona una dirección de entrega', 400);
       }
   
       const config = await Configuracion.findOne();
@@ -657,44 +581,40 @@ listarComercios: async (req, res) => {
       const itbis = subtotal * (config.itbis / 100);
       const total = subtotal + itbis;
     
-    // Crear el pedido en la base de datos
-    const nuevoPedido = await Pedido.create({
-      id_cliente: req.session.user.id,
-      id_direccion: direccionId,
-      notas,
-      subtotal: totals.subtotal,
-      itbis: totals.itbis,
-      total: totals.total,
-      estado: 'pendiente'
-    });
+      const nuevoPedido = await Pedido.create({
+        id_cliente: req.session.user.id,
+        id_direccion: direccionId,
+        notas,
+        subtotal,
+        itbis,
+        total,
+        estado: 'pendiente'
+      });
 
-    // Enviar correo de confirmación
-    const mailOptions = {
-      from: 'appcenar@example.com',
-      to: req.session.user.correo,
-      subject: '¡Pedido Recibido!',
-      html: `<p>Tu pedido #${nuevoPedido.id} está en proceso. Total: RD$ ${totals.total}</p>`
-    };
-    await transporter.sendMail(mailOptions);
+      const mailOptions = {
+        from: 'appcenar@example.com',
+        to: req.session.user.correo,
+        subject: '¡Pedido Recibido!',
+        html: `<p>Tu pedido #${nuevoPedido.id} está en proceso. Total: RD$ ${total}</p>`
+      };
+      await transporter.sendMail(mailOptions);
 
-    req.flash('success_msg', 'Pedido confirmado correctamente');
-    res.redirect('/cliente/pedidos');
-  } catch (error) {
-    console.error('Error al confirmar pedido:', error);
-    req.flash('error_msg', 'Error al confirmar el pedido');
-    res.redirect('/cliente/carrito');
-  }
-},  
-
-// Cerrar sesión
-cerrarSesion: (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Error al cerrar sesión:', err);
-      return res.redirect('/cliente/home');
+      req.flash('success_msg', 'Pedido confirmado correctamente');
+      res.redirect('/cliente/pedidos');
+    } catch (error) {
+      next(new DBError('Error al confirmar el pedido', error));
     }
-    res.clearCookie('connect.sid'); // Limpiar la cookie de sesión
-    res.redirect('/login'); // Redireccionar al login
-  });
-}
+  },  
+
+  // Cerrar sesión
+  cerrarSesion: (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Error al cerrar sesión:', err);
+        return res.redirect('/cliente/home');
+      }
+      res.clearCookie('connect.sid');
+      res.redirect('/login');
+    });
+  }
 };

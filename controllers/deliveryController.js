@@ -1,8 +1,10 @@
 const { Pedido, Comercio, Usuario, Direccion, Producto, DetallePedido, Configuracion } = require('../models');
+const { DBError, AppError } = require('../utils/AppError');
+const bcrypt = require('bcrypt');
 
 module.exports = {
   // Home del delivery
-  homeDelivery: async (req, res) => {
+  homeDelivery: async (req, res, next) => {
     try {
       const pedidos = await Pedido.findAll({
         where: { id_delivery: req.session.user.id },
@@ -19,16 +21,12 @@ module.exports = {
         title: 'Home - Delivery'
       });
     } catch (error) {
-      console.error('Error en homeDelivery:', error);
-      res.status(500).render('error', { 
-        message: 'Error al cargar la página del delivery',
-        title: 'Error'
-      });
+      next(new DBError('Error al cargar la página del delivery', error));
     }
   },
 
   // Detalle de un pedido específico
-  detallePedido: async (req, res) => {
+  detallePedido: async (req, res, next) => {
     try {
       const pedido = await Pedido.findOne({
         where: { 
@@ -63,17 +61,13 @@ module.exports = {
       });
 
       if (!pedido) {
-        return res.status(404).render('error', { 
-          message: 'Pedido no encontrado',
-          title: 'Error'
-        });
+        throw new AppError('Pedido no encontrado', 404);
       }
 
       const direccion = pedido.cliente.direcciones.find(d => d.id === pedido.id_direccion);
       const configuracion = await Configuracion.findOne({ where: { id: 1 } });
       const itbisPct = parseFloat(configuracion.itbis);
 
-      // 2) Calcular ITBIS y total con ITBIS
       const subtotal = parseFloat(pedido.subtotal);
       const itbisAmount = parseFloat((subtotal * (itbisPct / 100)).toFixed(2));
       const totalConItbis = parseFloat((subtotal + itbisAmount).toFixed(2));
@@ -88,38 +82,40 @@ module.exports = {
         title: `Pedido #${pedido.id}`
       });
     } catch (error) {
-      console.error('Error en detallePedido:', error);
-      res.status(500).render('error', { 
-        message: 'Error al cargar el detalle del pedido',
-        title: 'Error'
-      });
+      next(new DBError('Error al cargar el detalle del pedido', error));
     }
   },
 
   // Completar un pedido
-  completarPedido: async (req, res) => {
+  completarPedido: async (req, res, next) => {
     try {
-      const pedido = await Pedido.findByPk(req.params.id);
+      const pedido = await Pedido.findOne({
+        where: {
+          id: req.params.id,
+          id_delivery: req.session.user.id,
+          estado: 'en proceso'
+        }
+      });
+
+      if (!pedido) {
+        throw new AppError('Pedido no encontrado o no asignado', 404);
+      }
+
       await pedido.update({ estado: 'completado' });
       
-      // Actualiza estado del delivery
       await Usuario.update(
-        { estado: 'activo' },
+        { disponible: true },
         { where: { id: req.session.user.id } }
       );
       
       res.redirect('/delivery');
     } catch (error) {
-      console.error('Error en completarPedido:', error);
-      res.status(500).render('error', { 
-        message: 'Error al completar el pedido',
-        title: 'Error'
-      });
+      next(new DBError('Error al completar el pedido', error));
     }
   },
 
   // Mostrar perfil del delivery
-  mostrarPerfil: async (req, res) => {
+  mostrarPerfil: async (req, res, next) => {
     try {
       const usuario = await Usuario.findByPk(req.session.user.id, {
         attributes: ['id', 'nombre', 'apellido', 'correo', 'telefono', 'foto', 'usuario']
@@ -131,27 +127,21 @@ module.exports = {
         title: 'Mi Perfil'
       });
     } catch (error) {
-      console.error('Error en mostrarPerfil:', error);
-      res.status(500).render('error', { 
-        message: 'Error al cargar el perfil',
-        title: 'Error'
-      });
+      next(new DBError('Error al cargar el perfil', error));
     }
   },
 
   // Actualizar perfil del delivery
-  actualizarPerfil: async (req, res) => {
+  actualizarPerfil: async (req, res, next) => {
     try {
       const { nombre, apellido, telefono, password, confirmPassword } = req.body;
       
       if (!nombre || !apellido || !telefono) {
-        req.flash('error', 'Nombre, apellido y teléfono son requeridos');
-        return res.redirect('/delivery/perfil');
+        throw new AppError('Nombre, apellido y teléfono son requeridos', 400);
       }
 
       if (password && password !== confirmPassword) {
-        req.flash('error', 'Las contraseñas no coinciden');
-        return res.redirect('/delivery/perfil');
+        throw new AppError('Las contraseñas no coinciden', 400);
       }
 
       const updateData = {
@@ -182,11 +172,12 @@ module.exports = {
       req.flash('success', 'Perfil actualizado correctamente');
       res.redirect('/delivery/perfil');
     } catch (error) {
-      console.error('Error en actualizarPerfil:', error);
-      res.status(500).render('error', { 
-        message: 'Error al actualizar el perfil',
-        title: 'Error'
-      });
+      if (error.name === 'SequelizeValidationError') {
+        const messages = error.errors.map(e => e.message);
+        req.flash('error', messages.join(', '));
+        return res.redirect('/delivery/perfil');
+      }
+      next(new DBError('Error al actualizar el perfil', error));
     }
   }
 };
