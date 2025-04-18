@@ -12,7 +12,7 @@ router.use(carritoMiddleware);
 // Middleware para verificar rol de cliente
 router.use(checkCliente);
 
-// Home (ahora en la raíz)
+// Home
 router.get('/home', clienteController.home);
 
 // Carrito de compras

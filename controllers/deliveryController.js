@@ -99,6 +99,7 @@ module.exports = {
 
       if (!pedido) {
         throw new AppError('Pedido no encontrado o no asignado', 404);
+        return res.redirect('/delivery')
       }
 
       await pedido.update({ estado: 'completado' });
@@ -108,6 +109,7 @@ module.exports = {
         { where: { id: req.session.user.id } }
       );
       
+      req.flash('success', 'Pedido marcado como entregado');
       res.redirect('/delivery');
     } catch (error) {
       next(new DBError('Error al completar el pedido', error));
