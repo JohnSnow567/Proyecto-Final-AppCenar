@@ -6,7 +6,6 @@
     </a>
   </div>
 
-  <!-- Buscador -->
   <div class="card mb-4">
     <div class="card-body">
       <form action="/cliente/comercios" method="GET">
@@ -23,12 +22,10 @@
     </div>
   </div>
 
-  <!-- Contador de resultados -->
   <div class="mb-3">
     <h5>{{comercios.length}} {{#if (eq comercios.length 1)}}comercio{{else}}comercios{{/if}} encontrados</h5>
   </div>
 
-  <!-- Listado de comercios -->
   {{#if comercios.length}}
     <div class="row">
       {{#each comercios}}

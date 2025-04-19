@@ -1,7 +1,7 @@
 module.exports = {
     development: {
       username: process.env.DB_USER || 'root',
-      password: process.env.DB_PASS || '1234',
+      password: process.env.DB_PASS || '030724',
       database: process.env.DB_NAME || 'appcenar',
       host: process.env.DB_HOST || 'localhost',
       dialect: 'mysql',

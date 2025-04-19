@@ -28,6 +28,7 @@ module.exports = {
   // Home del cliente
   home: async (req, res, next) => {
     try {
+      // 1. Obtener tipos de comercio
       const tiposComercio = await TipoComercio.findAll({
         attributes: ['id', 'nombre', 'icono'],
         include: [{
@@ -37,12 +38,41 @@ module.exports = {
         }],
         group: ['TipoComercio.id']
       });
-
+  
+      // 2. Obtener últimos 3 pedidos del cliente
+      const pedidosRecientes = await Pedido.findAll({
+        where: { id_cliente: req.session.user.id },
+        limit: 3,
+        order: [['fecha_hora', 'DESC']],
+        include: [{
+          model: Comercio,
+          as: 'comercio',
+          attributes: ['nombre_comercio']
+        }]
+      });
+  
+      // 3. Obtener comercios favoritos
+      const favoritos = await Favorito.findAll({
+        where: { id_cliente: req.session.user.id },
+        limit: 4,
+        include: [{
+          model: Comercio,
+          as: 'comercio',
+          include: [{
+            model: TipoComercio,
+            as: 'tipoComercio'
+          }]
+        }]
+      });
+  
       res.render('cliente/home', {
         title: 'Inicio - Cliente',
         tiposComercio,
+        pedidosRecientes,
+        favoritos,
         user: req.session.user
       });
+  
     } catch (error) {
       next(new DBError('Error al cargar la página de inicio', error));
     }
@@ -189,6 +219,40 @@ module.exports = {
       res.redirect('back');
     } catch (error) {
       next(new DBError('Error al agregar a favoritos', error));
+    }
+  },
+
+  listarComercios: async (req, res, next) => {
+    try {
+      const { tipo } = req.query;
+      
+      const whereClause = {};
+      if (tipo) {
+        whereClause.id_tipo = tipo;
+      }
+  
+      const comercios = await Comercio.findAll({
+        where: whereClause,
+        include: [{
+          model: TipoComercio,
+          as: 'tipoComercio'
+        }]
+      });
+  
+      // Si se filtra por tipo, obtener info del tipo
+      let tipoComercio = null;
+      if (tipo) {
+        tipoComercio = await TipoComercio.findByPk(tipo);
+      }
+  
+      res.render('cliente/listadoComercios', {
+        title: 'Comercios Disponibles',
+        comercios,
+        tipoComercio,
+        user: req.session.user
+      });
+    } catch (error) {
+      next(new DBError('Error al cargar los comercios', error));
     }
   },
 
