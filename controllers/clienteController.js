@@ -48,6 +48,49 @@ module.exports = {
     }
   },
 
+  // Listado de comercios por tipo
+  listarComercios: async (req, res, next) => {
+    try {
+      const { tipo, search } = req.query;
+      
+      if (!tipo) {
+        throw new AppError('Debes seleccionar un tipo de comercio', 400);
+      }
+
+      const tipoComercio = await TipoComercio.findByPk(tipo);
+      if (!tipoComercio) {
+        throw new AppError('Tipo de comercio no encontrado', 404);
+      }
+
+      const whereConditions = {
+        id_tipo_comercio: tipo,
+        activo: true
+      };
+
+      if (search) {
+        whereConditions.nombre_comercio = {
+          [Op.like]: `%${search}%`
+        };
+      }
+
+      const comercios = await Comercio.findAll({
+        where: whereConditions,
+        attributes: ['id', 'nombre_comercio', 'descripcion', 'logo'],
+        order: [['nombre_comercio', 'ASC']]
+      });
+
+      res.render('cliente/listadoComercios', {
+        title: `Comercios - ${tipoComercio.nombre}`,
+        tipoComercio,
+        comercios,
+        search: search || '',
+        user: req.session.user
+      });
+    } catch (error) {
+      next(new DBError('Error al cargar el listado de comercios', error));
+    }
+  },
+
   // Listar direcciones del cliente
   listarDirecciones: async (req, res, next) => {
     try {
