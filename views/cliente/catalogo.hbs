@@ -1,59 +1,104 @@
 <div class="container mt-4">
   <div class="row">
-    <div class="col-md-3">
-      <div class="card mb-4">
-        <div class="card-header">
-          <h5>Categorías</h5>
-        </div>
-        <div class="list-group list-group-flush">
-          {{#each categorias}}
-          <a href="#" class="list-group-item list-group-item-action">{{nombre}}</a>
-          {{/each}}
-        </div>
-      </div>
-    </div>
-    <div class="col-md-9">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>{{comercio.nombre_comercio}}</h2>
-        <img src="{{comercio.logo}}" alt="Logo" width="80" class="rounded">
-      </div>
-      
+    <!-- === CATÁLOGO (8 cols) === -->
+    <div class="col-md-8">
+      {{!-- Iteramos sobre cada categoría --}}
       {{#each categorias}}
-        <div class="mb-5">
-          <h4 class="mb-3 border-bottom pb-2">{{nombre}}</h4>
+        <div class="mb-4">
+          <h4 class="border-bottom pb-2">{{this.nombre}}</h4>
           <div class="row">
-            {{#each productos}}
-            <div class="col-md-4 mb-4">
-              <div class="card h-100">
-                <img src="{{imagen}}" class="card-img-top" alt="{{nombre}}" style="height: 150px; object-fit: cover;">
-                <div class="card-body">
-                  <h5 class="card-title">{{nombre}}</h5>
-                  <p class="card-text text-muted small">{{descripcion}}</p>
-                  <p class="h5 text-primary">RD$ {{precio}}</p>
-                </div>
-                <div class="card-footer bg-white">
-                  <form action="/cliente/carrito/agregar/{{id}}" method="POST">
-                    <input type="hidden" name="cantidad" value="1">
-                    <button type="submit" class="btn btn-primary btn-block">
-                      <i class="fas fa-cart-plus"></i> Agregar
-                    </button>
-                  </form>
+            {{!-- Ahora this.productos contiene solo los productos de esta categoría --}}
+            {{#each this.productos}}
+              <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                  <img src="/images/uploads/productos/{{this.imagen}}"
+                       class="card-img-top"
+                       alt="{{this.nombre}}"
+                       style="height: 150px; width: 100%; object-fit: contain;">
+                  <div class="card-body">
+                    <h5 class="card-title">{{this.nombre}}</h5>
+                    <p class="card-text small text-muted">{{this.descripcion}}</p>
+                    <p class="h5 text-primary">RD$ {{this.precio}}</p>
+                  </div>
+                  <div class="card-footer bg-white">
+                    {{!-- Deshabilitar si ya está en el carrito --}}
+                    {{#if (includes @root.carritoIds this.id)}}
+                      <button class="btn btn-outline-secondary btn-block" disabled>
+                        Agregado
+                      </button>
+                    {{else}}
+                      <form action="/cliente/carrito/agregar/{{this.id}}" method="POST">
+                        <input type="hidden" name="cantidad" value="1">
+                        <button type="submit" class="btn btn-primary btn-block">
+                          <i class="fas fa-cart-plus"></i> Agregar
+                        </button>
+                      </form>
+                    {{/if}}
+                  </div>
                 </div>
               </div>
-            </div>
             {{/each}}
           </div>
         </div>
       {{/each}}
+
+      <div class="text-center mt-4">
+        <a href="/comercio/home" class="btn btn-secondary">
+          <i class="fas fa-arrow-left mr-2"></i> Volver al inicio
+        </a>
+      </div>
+    </div>
+
+    <!-- === MI PEDIDO (4 cols) === -->
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header"><h5>Mi pedido</h5></div>
+        <ul class="list-group list-group-flush">
+          {{#if carrito.length}}
+            {{#each carrito}}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{this.producto.nombre}}</span>
+                <div>
+                  <span class="me-2">x{{this.cantidad}}</span>
+                  <span>RD$ {{multiply this.producto.precio this.cantidad}}</span>
+                  <form action="/cliente/carrito/remover/{{this.producto.id}}"
+                        method="POST"
+                        class="d-inline ml-2">
+                    <button class="btn btn-sm btn-outline-danger">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </li>
+            {{/each}}
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Subtotal</strong><span>RD$ {{subtotal}}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>ITBIS ({{config.itbis}}%)</strong><span>RD$ {{itbis}}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between font-weight-bold">
+              <strong>Total</strong><span>RD$ {{total}}</span>
+            </li>
+          {{else}}
+            <li class="list-group-item">Tu pedido está vacío.</li>
+          {{/if}}
+        </ul>
+      </div>
+
+      {{!-- Botón Continuar --}}
+      {{#if carrito.length}}
+        <form action="/cliente/pedidos/confirmar" method="GET">
+          <button type="submit" class="btn btn-success btn-block">
+            <i class="fas fa-arrow-right mr-2"></i>Continuar
+          </button>
+        </form>
+      {{/if}}
     </div>
   </div>
 </div>
 
-<div class="text-center mt-4">
-  <a href="/cliente/home" class="btn btn-secondary">
-    <i class="fas fa-arrow-left mr-2"></i> Volver al inicio
-  </a>
-</div>
+
 
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1000">
   <div id="cartToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">

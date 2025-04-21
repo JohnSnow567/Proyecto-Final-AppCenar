@@ -18,7 +18,7 @@
                             {{#each carrito}}
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <div class="d-flex align-items-center">
-                                    <img src="{{producto.imagen}}" width="50" class="mr-3">
+                                    <img src="/images/uploads/productos/{{producto.imagen}}" width="100" class="mr-3">
                                     <div>
                                         <h6>{{producto.nombre}}</h6>
                                         <small>RD$ {{producto.precio}} c/u</small>
@@ -57,7 +57,7 @@
                             <span>Total:</span>
                             <span>RD$ {{total}}</span>
                         </div>
-                        <a href="/cliente/pedidos/confirmar" class="btn btn-success btn-block mt-3 btn-checkout">
+                        <a href="/cliente/carrito/confirmar" class="btn btn-success btn-block mt-3 btn-checkout">
                             <i class="fas fa-arrow-right mr-2"></i>
                             Proceder al pago
                             <i class="fas fa-lock ml-2"></i>

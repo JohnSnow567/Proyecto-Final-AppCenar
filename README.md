@@ -1,6 +1,6 @@
 Documentacion general de la creacion de la aplicacion
 
-Faltantes: Comercios, Delivery, Clientes
+Faltantes: Ninguno 🎉🎉🎉
 
 11/04/2025
 
@@ -38,6 +38,10 @@ Mantenimiento de Productos ✅
 
 Mantenimiento de Tipos de Productos ✅
 
+21/04/2025
 
-(Insertar cambios hechos para mantener un orden de funcionalidades todavia por agregar)
+Delivery y Cliente Completados ✅
+
+Agregado de Productos y Finalizacion de Pedidos ✅
+
 

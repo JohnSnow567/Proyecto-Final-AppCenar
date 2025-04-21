@@ -64,7 +64,10 @@ const hbs = exphbs.create({
     concat: function() {
       return Array.prototype.slice.call(arguments, 0, -1).join('');
     },
-    selected: (a, b) => a == b ? 'selected' : ''
+    selected: (a, b) => a == b ? 'selected' : '',
+    includes: (arr, val) => Array.isArray(arr) && arr.includes(val),
+    toFixed:  (num, decimals) => parseFloat(num).toFixed(decimals)
+
   },
   partialsDir: [
     path.join(__dirname, 'views/partials'),

@@ -1,5 +1,5 @@
 <div class="container mt-4">
-  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
     <div class="container-fluid">
       <div class="collapse navbar-collapse">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
@@ -21,12 +21,15 @@
             <form action="/cliente/logout" method="POST" class="d-inline">
               <button type="submit" class="nav-link btn btn-link">Cerrar sesión</button>
             </form>
+           </li>
+           <li class="nav-item btn-success">
+            <a class="nav-link" href="/cliente/carrito">Carrito</a>
           </li>
         </ul>
       </div>
     </div>
   </nav>
-
+  
   <h2 class="mb-4">Bienvenido, {{user.nombre}}!</h2>
 
   <div class="row mb-4">
@@ -34,7 +37,7 @@
     <div class="col-md-3 mb-3">
       <a href="/cliente/comercios?tipo={{id}}" class="card text-center h-100 text-decoration-none">
         <div class="card-body">
-          <i class="{{icono}} fa-3x mb-3"></i>
+          <img src="/images/uploads/iconos/{{icono}}" class="rounded mr-3" width="150">
           <h5 class="card-title">{{nombre}}</h5>
         </div>
       </a>
@@ -42,57 +45,63 @@
     {{/each}}
   </div>
   <div class="card mb-4">
-    <div class="card-header">
-      <h5>Últimos Pedidos</h5>
+   <div class="card-header">
+     <h5>Últimos Pedidos</h5>
     </div>
-    <div class="card-body">
-      {{#if pedidosRecientes}}
-      <div class="list-group">
-        {{#each pedidosRecientes}}
-        <a href="/cliente/pedidos/{{id}}" class="list-group-item list-group-item-action">
-          <div class="d-flex w-100 justify-content-between">
-            <h6 class="mb-1">Pedido #{{id}}</h6>
-            <small>{{fecha}}</small>
+      <div class="card-body">
+        {{#if pedidosRecientes.length}}
+          <div class="list-group">
+            {{#each pedidosRecientes}}
+              <a href="/cliente/pedidos/{{id}}" class="list-group-item list-group-item-action">
+                <div class="d-flex w-100 justify-content-between">
+                  <h6 class="mb-1">Pedido #{{id}}</h6>
+                  <small>{{formatDate fecha}}</small>
+                </div>
+                <p class="mb-1">{{comercio.nombre}}</p>
+                <small class="text-muted">Total: RD$ {{total}}</small>
+              </a>
+            {{/each}}
           </div>
-          <p class="mb-1">{{comercio.nombre}}</p>
-          <small class="text-muted">Total: RD$ {{total}}</small>
-        </a>
-        {{/each}}
+          {{else}}
+          <div class="alert alert-info">
+            No tienes pedidos recientes. ¡Empieza a comprar!
+          </div>
+        {{/if}}
       </div>
-      {{else}}
-      <div class="alert alert-info">
-        No tienes pedidos recientes. ¡Empieza a comprar!
-      </div>
-      {{/if}}
-    </div>
   </div>
 
-  <div class="card">
-    <div class="card-header">
-      <h5>Favoritos</h5>
-    </div>
-    <div class="card-body">
-      {{#if favoritos}}
-      <div class="row">
-        {{#each favoritos}}
-        <div class="col-md-3 mb-3">
-          <div class="card h-100">
-            <img src="{{comercio.foto}}" class="card-img-top" alt="{{comercio.nombre}}">
-            <div class="card-body">
-              <h6 class="card-title">{{comercio.nombre}}</h6>
-            </div>
-            <div class="card-footer">
-              <a href="/cliente/catalogo?{{comercio.id}}" class="btn btn-sm btn-block btn-primary">Ver</a>
-            </div>
+
+    <div class="card mb-4">
+      <div class="card-header">
+        <h5>Favoritos</h5>
+      </div>
+      <div class="card-body">
+        {{#if favoritos.length}}
+          <div class="row">
+            {{#each favoritos}}
+              <div class="col-md-3 mb-3">
+                <div class="card h-100">
+                  <img src="/images/uploads/logos/{{this.logo}}" 
+                      class="card-img-top" 
+                      alt="{{this.nombre}}">
+                  <div class="card-body">
+                    <h6 class="card-title">{{this.nombre}}</h6>
+                  </div>
+                  <div class="card-footer">
+                    <a href="/cliente/catalogo?id_comercio={{this.id}}" 
+                      class="btn btn-sm btn-block btn-primary">
+                      Ver
+                    </a>
+                  </div>
+                </div>
+              </div>
+            {{/each}}
           </div>
-        </div>
-        {{/each}}
+        {{else}}
+          <div class="alert alert-info">
+            No tienes comercios favoritos. Agrega algunos para verlos aquí.
+          </div>
+        {{/if}}
       </div>
-      {{else}}
-      <div class="alert alert-info">
-        No tienes comercios favoritos. Agrega algunos para verlos aquí.
-      </div>
-      {{/if}}
-    </div>
-  </div>
+   </div>
 </div>
