@@ -20,6 +20,8 @@ router.post('/carrito/agregar/:id', clienteController.addToCart);
 router.post('/carrito/remover/:id', clienteController.removeFromCart);
 router.get('/carrito/count', clienteController.getCartCount);
 router.get('/carrito', clienteController.viewCart);
+router.get('/carrito/confirmar', clienteController.mostrarConfirmacion);
+router.post('/carrito/confirmar', hasAddress, clienteController.confirmarPedido);
 
 // Listado de comercios
 router.get('/comercios', clienteController.listarComercios);
@@ -30,7 +32,7 @@ router.get('/catalogo', clienteController.catalogo);
 // Pedidos
 router.get('/pedidos', clienteController.listarPedidos);
 router.get('/pedidos/:id', clienteController.mostrarDetallePedido);
-router.post('/pedidos/confirmar', hasAddress, clienteController.confirmarPedido);
+
 
 // Perfil
 router.route('/perfil')

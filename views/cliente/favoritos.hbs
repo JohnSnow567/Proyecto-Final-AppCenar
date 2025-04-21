@@ -1,22 +1,13 @@
 <div class="container mt-4">
   <h2 class="mb-4">Mis Comercios Favoritos</h2>
 
-  {{#if success_msg}}
-    <div class="alert alert-success">{{success_msg}}</div>
-  {{/if}}
-
-  {{#if error_msg}}
-    <div class="alert alert-danger">{{error_msg}}</div>
-  {{/if}}
-
   <div class="row">
     {{#each favoritos}}
     <div class="col-md-4 mb-4">
       <div class="card h-100">
-        <img src="{{comercio.foto}}" class="card-img-top" alt="{{comercio.nombre}}">
+        <img src="/images/uploads/logos/{{comercio.logo}}" class="card-img-top" alt="{{comercio.nombre}}">
         <div class="card-body">
-          <h5 class="card-title">{{comercio.nombre}}</h5>
-          <p class="card-text">{{comercio.descripcion}}</p>
+          <h5 class="card-title">{{comercio.nombre_comercio}}</h5>
           <span class="badge badge-primary">{{comercio.tipoComercio.nombre}}</span>
         </div>
         <div class="card-footer bg-white">

@@ -1,4 +1,4 @@
-const { TipoComercio, Comercio, Direccion, Favorito, Pedido, Producto, Categoria, Usuario, Configuracion } = require('../models');
+const { TipoComercio, Comercio, Direccion, Favorito, Pedido, Producto, Categoria, Usuario, Configuracion, DetallePedido } = require('../models');
 const bcrypt = require('bcrypt');
 const fs = require('fs');
 const path = require('path');
@@ -28,6 +28,9 @@ module.exports = {
   // Home del cliente
   home: async (req, res, next) => {
     try {
+      const userId = req.session.user.id;
+
+      // 1) Cargar tipos de comercio (como antes)
       const tiposComercio = await TipoComercio.findAll({
         attributes: ['id', 'nombre', 'icono'],
         include: [{
@@ -38,9 +41,58 @@ module.exports = {
         group: ['TipoComercio.id']
       });
 
+      // 2) Cargar los 5 pedidos más recientes de este cliente
+      const pedidos = await Pedido.findAll({
+        where: { id_cliente: userId },
+        include: [
+          {
+            model: Comercio,
+            as: 'comercio',
+            attributes: ['nombre_comercio']
+          }
+        ],
+        order: [['fecha_hora', 'DESC']],
+        limit: 5
+      });
+
+      // 3) Convertir a plano y renombrar campos para la vista
+      const pedidosRecientes = pedidos.map(p => {
+        const obj = p.get({ plain: true });
+        return {
+          id: obj.id,
+          fecha: obj.fecha_hora,      // puedes formatearla en la vista con tu helper formatDate
+          total: obj.total,
+          comercio: {
+            nombre_comercio: obj.comercio.nombre
+          }
+        };
+      });
+
+       // 3) Favoritos del cliente
+       const favs = await Favorito.findAll({
+        where: { id_cliente: userId },
+        include: [{
+          model: Comercio,
+          as: 'comercio',
+          attributes: ['id', 'nombre_comercio', 'logo']
+        }]
+      });
+
+      const favoritos = favs.map(f => {
+        const o = f.get({ plain: true });
+        return {
+          id: o.comercio.id,
+          nombre: o.comercio.nombre_comercio,
+          logo: o.comercio.logo
+        };
+      });
+
+      // 4) Renderizar pasando los pedidosRecientes
       res.render('cliente/home', {
         title: 'Inicio - Cliente',
         tiposComercio,
+        pedidosRecientes,
+        favoritos,
         user: req.session.user
       });
     } catch (error) {
@@ -63,8 +115,7 @@ module.exports = {
       }
 
       const whereConditions = {
-        id_tipo_comercio: tipo,
-        activo: true
+        id_tipo_comercio: tipo
       };
 
       if (search) {
@@ -75,7 +126,7 @@ module.exports = {
 
       const comercios = await Comercio.findAll({
         where: whereConditions,
-        attributes: ['id', 'nombre_comercio', 'descripcion', 'logo'],
+        attributes: ['id', 'nombre_comercio', 'logo'],
         order: [['nombre_comercio', 'ASC']]
       });
 
@@ -355,8 +406,7 @@ module.exports = {
         const { cantidad } = req.body || 1; 
 
         const producto = await Producto.findByPk(id, {
-            attributes: ['id', 'nombre', 'precio', 'imagen', 'activo'],
-            where: { activo: true }
+            attributes: ['id', 'nombre', 'precio', 'imagen', 'id_comercio']
         });
 
         if (!producto) {
@@ -570,7 +620,7 @@ mostrarDetallePedido: async (req, res) => {
 
   // catálogo
   catalogo: async (req, res, next) => {
-    try {
+    try { 
       const { id_comercio } = req.query;
   
       if (!id_comercio) {
@@ -585,8 +635,7 @@ mostrarDetallePedido: async (req, res) => {
           include: [{
             model: Producto,
             as: 'productos',
-            attributes: ['id', 'nombre', 'descripcion', 'precio', 'imagen'],
-            where: { activo: true }
+            attributes: ['id', 'nombre', 'descripcion', 'precio', 'imagen']
           }]
         }]
       });
@@ -594,11 +643,29 @@ mostrarDetallePedido: async (req, res) => {
       if (!comercio) {
         throw new AppError('Comercio no encontrado', 404);
       }
+
+        // 2) Carrito en sesión
+      const carrito = req.session.carrito || [];  
+      const carritoCount = carrito.reduce((sum, i) => sum + i.cantidad, 0);
+      const carritoIds   = carrito.map(i => i.producto.id);
+
+      const config   = await Configuracion.findOne({ where: { id: 1 } });
+      const itbisPct = parseFloat(config.itbis);
+      const subtotal = carrito.reduce((sum, i) => sum + (i.producto.precio * i.cantidad), 0);
+      const itbis     = parseFloat((subtotal * (itbisPct/100)).toFixed(2));
+      const total     = parseFloat((subtotal + itbis).toFixed(2));
   
       res.render('cliente/catalogo', {
         title: `Catálogo - ${comercio.nombre_comercio}`,
         comercio,
         categorias: comercio.categorias,
+        carrito,
+        carritoCount,
+        carritoIds,
+        subtotal,
+        itbis,
+        total,
+        config,
         user: req.session.user
       });
     } catch (error) {
@@ -606,14 +673,70 @@ mostrarDetallePedido: async (req, res) => {
     }
   },
 
+  mostrarConfirmacion: async (req, res, next) => {
+    try {
+      // 1) Recuperar el carrito de la sesión (o de donde lo guardes)
+      const carrito = req.session.carrito || [];
+      if (!carrito.length) {
+        // Si no hay productos, redirigir al carrito
+        req.flash('info_msg', 'Tu carrito está vacío.');
+        return res.redirect('/cliente/carrito');
+      }
+
+      // 2) Traer direcciones del cliente
+      const direcciones = await Direccion.findAll({
+        where: { id_cliente: req.session.user.id },
+        attributes: ['id', 'nombre', 'descripcion']
+      });
+      if (!direcciones.length) {
+        // Aunque el middleware hasAddress asegura que hay al menos una,
+        // por si acaso redirigimos
+        return res.redirect('/cliente/direcciones');
+      }
+
+      // 3) Traer configuración de ITBIS
+      const configuracion = await Configuracion.findOne({ where: { id: 1 } });
+      const itbisPct = parseFloat(configuracion.itbis);
+
+      // 4) Calcular subtotal, itbis y totalFinal
+      const subtotal = carrito.reduce((sum, item) => {
+        return sum + (item.producto.precio * item.cantidad);
+      }, 0);
+      const itbisAmount = parseFloat((subtotal * (itbisPct / 100)).toFixed(2));
+      const totalWithItbis = parseFloat((subtotal + itbisAmount).toFixed(2));
+
+      // 5) Renderizar la vista de confirmación
+      res.render('cliente/confirmarPedido', {
+        title: 'Confirmar Pedido',
+        user: req.session.user,
+        carrito,
+        direcciones,
+        configuracion,    // para mostrar el % en la vista
+        subtotal,
+        itbisAmount,
+        totalWithItbis
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   // Método para confirmar pedido
   confirmarPedido: async (req, res, next) => {
     try {
-      const { direccionId, notas } = req.body;
+      const { id_direccion } = req.body;
+      const carrito = req.session.carrito || [];
+
       
-      if (!direccionId) {
+      if (!id_direccion) {
         throw new AppError('Selecciona una dirección de entrega', 400);
       }
+
+      if (!carrito.length) {
+        throw new AppError('Tu carrito está vacío', 400);
+      }
+
+      const comercioId = carrito[0].producto.id_comercio;
   
       const config = await Configuracion.findOne();
       const subtotal = req.session.carrito.reduce((sum, item) => sum + (item.producto.precio * item.cantidad), 0);
@@ -622,13 +745,23 @@ mostrarDetallePedido: async (req, res) => {
     
       const nuevoPedido = await Pedido.create({
         id_cliente: req.session.user.id,
-        id_direccion: direccionId,
-        notas,
+        id_comercio: comercioId,
+        id_direccion: id_direccion,
         subtotal,
-        itbis,
         total,
         estado: 'pendiente'
       });
+
+      // Crear los detalles (DetallePedido) para cada ítem del carrito
+      await Promise.all(carrito.map(item => {
+        return DetallePedido.create({
+          id_pedido:       nuevoPedido.id,
+          id_producto:     item.producto.id,
+          cantidad:        item.cantidad,
+          precio_unitario: item.producto.precio
+        });
+      }));
+  
 
       const mailOptions = {
         from: 'appcenar@example.com',
@@ -638,6 +771,7 @@ mostrarDetallePedido: async (req, res) => {
       };
       await transporter.sendMail(mailOptions);
 
+      req.session.carrito = [];
       req.flash('success_msg', 'Pedido confirmado correctamente');
       res.redirect('/cliente/pedidos');
     } catch (error) {
