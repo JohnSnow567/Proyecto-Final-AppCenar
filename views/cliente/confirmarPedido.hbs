@@ -1,57 +1,114 @@
-<div class="container mt-4" style="max-width:600px;">
-  <h2 class="mb-4">Confirmar Pedido</h2>
-
-  {{!-- Lista de productos --}}
-  <div class="card mb-4">
-    <div class="card-header"><h5>Productos</h5></div>
-    <ul class="list-group list-group-flush">
-      {{#each carrito}}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <div>
-            <strong>{{producto.nombre}}</strong><br>
-            <small>RD$ {{producto.precio}} x {{cantidad}}</small>
-          </div>
-          <span>RD$ {{multiply producto.precio cantidad}}</span>
-        </li>
-      {{/each}}
-    </ul>
-  </div>
-
-  {{!-- Selección de dirección --}}
-  <div class="card mb-4">
-    <div class="card-header"><h5>Dirección de envío</h5></div>
-    <div class="card-body">
-      <form id="form-confirm" action="/cliente/carrito/confirmar" method="POST">
-        <div class="mb-3">
-          <label for="id_direccion" class="form-label">Elige una dirección</label>
-          <select name="id_direccion" id="id_direccion" class="form-control" required>
-            {{#each direcciones}}
-              <option value="{{id}}">{{nombre}} — {{descripcion}}</option>
-            {{/each}}
-          </select>
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+          <h4><i class="fas fa-clipboard-list mr-2"></i>Resumen de tu Pedido</h4>
         </div>
+        <div class="card-body">
+          {{#if carrito.length}}
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Cantidad</th>
+                  <th>Precio Unitario</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each carrito}}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <img src="{{producto.imagen}}" width="50" class="mr-3 rounded" alt="{{producto.nombre}}">
+                      <div>
+                        <h6 class="mb-0">{{producto.nombre}}</h6>
+                        <small class="text-muted">{{producto.descripcion}}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{cantidad}}</td>
+                  <td>RD$ {{producto.precio}}</td>
+                  <td>RD$ {{multiply producto.precio cantidad}}</td>
+                </tr>
+                {{/each}}
+              </tbody>
+            </table>
 
-        {{!-- Resumen de montos --}}
-        <div class="mb-3">
-          <div class="d-flex justify-content-between">
-            <span>Subtotal:</span>
-            <span>RD$ {{subtotal}}</span>
-          </div>
-          <div class="d-flex justify-content-between">
-            <span>ITBIS ({{configuracion.itbis}}%):</span>
-            <span>RD$ {{itbisAmount}}</span>
-          </div>
-          <hr>
-          <div class="d-flex justify-content-between fw-bold">
-            <span>Total:</span>
-            <span>RD$ {{totalWithItbis}}</span>
-          </div>
+            <div class="text-right mt-4">
+              <div class="row">
+                <div class="col-md-6 offset-md-6">
+                  <div class="d-flex justify-content-between mb-2">
+                    <span class="font-weight-bold">Subtotal:</span>
+                    <span>RD$ {{totales.subtotal}}</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-2">
+                    <span class="font-weight-bold">ITBIS ({{itbisPercent}}%):</span>
+                    <span>RD$ {{totales.itbis}}</span>
+                  </div>
+                  <div class="d-flex justify-content-between h4">
+                    <span class="font-weight-bold">Total:</span>
+                    <span class="text-primary">RD$ {{totales.total}}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {{else}}
+            <div class="alert alert-warning">
+              No hay productos en tu carrito. <a href="/cliente/catalogo">¡Agrega algunos!</a>
+            </div>
+          {{/if}}
         </div>
+      </div>
+    </div>
 
-        <button type="submit" class="btn btn-success w-100">
-          <i class="fas fa-check mr-2"></i>Confirmar Pedido
-        </button>
-      </form>
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <h4><i class="fas fa-truck mr-2"></i>Información de Entrega</h4>
+        </div>
+        <div class="card-body">
+          {{#if direcciones.length}}
+            <form action="/cliente/pedidos/confirmar" method="POST">
+              <input type="hidden" name="itbisPercent" value="{{itbisPercent}}">
+              <input type="hidden" name="total" value="{{totales.total}}">
+              
+              <div class="form-group">
+                <label class="font-weight-bold">Dirección de Entrega</label>
+                <select class="form-control" name="direccionId" required>
+                  {{#each direcciones}}
+                  <option value="{{id}}">{{nombre}} - {{descripcion}}</option>
+                  {{/each}}
+                </select>
+              </div>
+              
+              <div class="form-group">
+                <label class="font-weight-bold">Notas para el repartidor</label>
+                <textarea class="form-control" name="notas" rows="3" placeholder="Ej: El timbre no funciona, llamar al llegar"></textarea>
+              </div>
+              
+              <button type="submit" class="btn btn-success btn-block btn-lg">
+                <i class="fas fa-check-circle mr-2"></i> Confirmar Pedido
+              </button>
+            </form>
+          {{else}}
+            <div class="alert alert-danger">
+              <h5><i class="fas fa-exclamation-triangle mr-2"></i>¡Atención!</h5>
+              <p>No tienes direcciones registradas. Debes agregar al menos una dirección para realizar pedidos.</p>
+              <a href="/cliente/direcciones/nueva" class="btn btn-primary btn-block">
+                <i class="fas fa-plus mr-2"></i>Agregar Dirección
+              </a>
+            </div>
+          {{/if}}
+        </div>
+      </div>
     </div>
   </div>
+</div>
+
+<div class="text-center mt-4 mb-5">
+  <a href="/cliente/carrito" class="btn btn-secondary">
+    <i class="fas fa-arrow-left mr-2"></i> Volver al Carrito
+  </a>
 </div>
