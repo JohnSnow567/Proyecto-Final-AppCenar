@@ -1,0 +1,180 @@
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h4>Detalle del Pedido #{{pedido.id}}</h4>
+          <span class="badge badge-{{#if (eq pedido.estado 'completado')}}success{{else if (eq pedido.estado 'en proceso')}}warning{{else}}secondary{{/if}}">
+            {{pedido.estado}}
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-3">
+            <div>
+              <h6>Fecha:</h6>
+              <p>{{formatDate pedido.fecha_hora}}</p>
+            </div>
+            <div>
+              <h6>Comercio:</h6>
+              <p>{{pedido.comercio.nombre_comercio}}</p>
+            </div>
+          </div>
+
+          <h5 class="mb-3">Productos:</h5>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Cantidad</th>
+                  <th>Precio Unitario</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{#each pedido.productos}}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      {{#if imagen}}
+                      <img src="/images/uploads/productos/{{imagen}}" width="50" class="mr-3" alt="{{nombre}}">
+                      {{/if}}
+                      <div>
+                        <h6 class="mb-0">{{nombre}}</h6>
+                        <small class="text-muted">{{descripcion}}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>{{detalle.cantidad}}</td>
+                  <td>RD$ {{detalle.precio_unitario}}</td>
+
+                  {{/each}}
+                  <td>RD$ {{pedido.subtotal}}</td>
+                </tr>
+                
+              </tbody>
+            </table>
+          </div>
+
+          <div class="text-right mt-4">
+            <div class="row">
+              <div class="col-md-6 offset-md-6">
+                <div class="d-flex justify-content-between mb-2">
+                  <span>Subtotal:</span>
+                  <span>RD$ {{pedido.subtotal}}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                  <span>ITBIS ({{configuracion.itbis}}%):</span>
+                  <span>RD$ {{pedido.itbisAmount}}</span>
+                </div>
+                <div class="d-flex justify-content-between font-weight-bold h5">
+                  <span>Total:</span>
+                  <span>RD$ {{pedido.total}}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Información de Entrega</h5>
+        </div>
+        <div class="card-body">
+          <h6>Dirección:</h6>
+          <p class="mb-1"><strong>{{pedido.direccion.nombre}}</strong></p>
+          <p>{{pedido.direccion.descripcion}}</p>
+          
+          {{#if pedido.repartidor}}
+          <hr>
+          <h6>Repartidor:</h6>
+          <div class="d-flex align-items-center">
+            {{#if pedido.repartidor.foto}}
+            <img src="{{pedido.repartidor.foto}}" width="50" class="rounded-circle mr-3" alt="Repartidor">
+            {{/if}}
+            <div>
+              <p class="mb-0">{{pedido.repartidor.nombre}} {{pedido.repartidor.apellido}}</p>
+              <small class="text-muted">{{pedido.repartidor.telefono}}</small>
+            </div>
+          </div>
+          {{/if}}
+
+          {{#if pedido.notas}}
+          <hr>
+          <h6>Notas:</h6>
+          <p>{{pedido.notas}}</p>
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h5>Estado del Pedido</h5>
+        </div>
+        <div class="card-body">
+          <div class="timeline">
+            <div class="timeline-step {{#if (gte pedido.estado 1)}}active{{/if}}">
+              <div class="timeline-icon">
+                <i class="fas fa-shopping-cart"></i>
+              </div>
+              <div class="timeline-content">
+                <h6>Pedido Realizado</h6>
+                <small>{{formatDate pedido.fecha_hora}}</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="text-center mt-4">
+  <a href="/cliente/home" class="btn btn-secondary">
+    <i class="fas fa-arrow-left mr-2"></i> Volver al inicio
+  </a>
+</div>
+
+<style>
+  .timeline {
+    position: relative;
+    padding-left: 50px;
+  }
+  .timeline-step {
+    position: relative;
+    padding-bottom: 20px;
+  }
+  .timeline-icon {
+    position: absolute;
+    left: -40px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+  }
+  .timeline-step.active .timeline-icon {
+    background: #007bff;
+    color: white;
+  }
+  .timeline-content {
+    padding-left: 10px;
+  }
+  .timeline-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: -25px;
+    top: 30px;
+    height: calc(100% - 30px);
+    width: 2px;
+    background: #e9ecef;
+  }
+  .timeline-step.active:not(:last-child)::after {
+    background: #007bff;
+  }
+</style>

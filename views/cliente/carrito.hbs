@@ -1,0 +1,104 @@
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+            <i class="fas fa-shopping-cart mr-2"></i>
+            Mi Carrito
+        </h2>
+        <span class="badge badge-primary badge-pill py-2 px-3" id="dynamicCartCount">
+            {{carritoCount}} {{#if (eq carritoCount 1)}}producto{{else}}productos{{/if}}
+        </span>
+    </div>
+    
+    {{#if carrito.length}}
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {{#each carrito}}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <img src="/images/uploads/productos/{{producto.imagen}}" width="100" class="mr-3">
+                                    <div>
+                                        <h6>{{producto.nombre}}</h6>
+                                        <small>RD$ {{producto.precio}} c/u</small>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="badge badge-primary badge-pill">{{cantidad}}</span>
+                                    <form action="/cliente/carrito/remover/{{producto.id}}" method="POST" class="d-inline ml-2">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger btn-remove-item">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Resumen</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <span>RD$ {{subtotal}}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>ITBIS (18%):</span>
+                            <span>RD$ {{itbis}}</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between font-weight-bold h5">
+                            <span>Total:</span>
+                            <span>RD$ {{total}}</span>
+                        </div>
+                        <a href="/cliente/carrito/confirmar" class="btn btn-success btn-block mt-3 btn-checkout">
+                            <i class="fas fa-arrow-right mr-2"></i>
+                            Proceder al pago
+                            <i class="fas fa-lock ml-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{else}}
+        <div class="alert alert-info">
+            Tu carrito está vacío. <a href="/cliente/catalogo">¡Agrega productos!</a>
+        </div>
+    {{/if}}
+</div>
+
+<style>
+  .btn-checkout {
+    transition: all 0.3s;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+  .btn-checkout:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Confirmar eliminación de producto
+  document.querySelectorAll('.btn-remove-item').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      if (confirm('¿Estás seguro que deseas eliminar este producto de tu carrito?')) {
+        const form = this.closest('form');
+        if (form) {
+          form.submit();
+        }
+      }
+    });
+  });
+});
+</script>

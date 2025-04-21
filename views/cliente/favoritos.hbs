@@ -1,0 +1,37 @@
+<div class="container mt-4">
+  <h2 class="mb-4">Mis Comercios Favoritos</h2>
+
+  <div class="row">
+    {{#each favoritos}}
+    <div class="col-md-4 mb-4">
+      <div class="card h-100">
+        <img src="/images/uploads/logos/{{comercio.logo}}" class="card-img-top" alt="{{comercio.nombre}}">
+        <div class="card-body">
+          <h5 class="card-title">{{comercio.nombre_comercio}}</h5>
+          <span class="badge badge-primary">{{comercio.tipoComercio.nombre}}</span>
+        </div>
+        <div class="card-footer bg-white">
+          <a href="/comercios/{{comercio.id}}" class="btn btn-sm btn-primary">Ver Comercio</a>
+          <form action="/cliente/favoritos/{{id}}/eliminar" method="POST" class="d-inline float-right">
+            <button type="submit" class="btn btn-sm btn-outline-danger">
+              <i class="fas fa-heart-broken"></i> Quitar
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+    {{else}}
+    <div class="col-12">
+      <div class="alert alert-info">
+        No tienes comercios favoritos. Agrega algunos para verlos aquí.
+      </div>
+    </div>
+    {{/each}}
+  </div>
+</div>
+
+<div class="text-center mt-4">
+  <a href="/cliente/home" class="btn btn-secondary">
+    <i class="fas fa-arrow-left mr-2"></i> Volver al inicio
+  </a>
+</div>

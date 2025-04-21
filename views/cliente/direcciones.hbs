@@ -1,0 +1,72 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Mis Direcciones</h2>
+    <a href="/cliente/direcciones/nueva" class="btn btn-primary">
+      <i class="fas fa-plus"></i> Nueva Dirección
+    </a>
+  </div>
+
+  <div class="row">
+    {{#each direcciones}}
+      <div class="col-md-6 mb-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <h5 class="card-title">{{nombre}}</h5>
+            <p class="card-text">{{descripcion}}</p>
+          </div>
+          <div class="card-footer bg-white">
+            <a href="/cliente/direcciones/{{id}}/editar" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-edit"></i> Editar
+            </a>
+            <form action="/cliente/direcciones/{{id}}/eliminar" method="POST" class="d-inline">
+              <button type="submit" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-trash"></i> Eliminar
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    {{else}}
+      <div class="col-12">
+        <div class="alert alert-info">
+          No tienes direcciones registradas. Agrega una para comenzar.
+        </div>
+      </div>
+    {{/each}}
+  </div>
+
+  <div class="row justify-content-center mt-4">
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header">
+          <h4>{{#if direccion}}Editar{{else}}Nueva{{/if}} Dirección</h4>
+        </div>
+        <div class="card-body">
+          <form action="{{#if direccion}}/cliente/direcciones/{{direccion.id}}/editar{{else}}/cliente/direcciones/nueva{{/if}}" method="POST">
+            <div class="form-group">
+              <label for="nombre">Nombre de la dirección</label>
+              <input type="text" class="form-control" id="nombre" name="nombre"
+                     value="{{#if direccion}}{{direccion.nombre}}{{/if}}" required>
+            </div>
+            <div class="form-group">
+              <label for="descripcion">Descripción</label>
+              <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required>
+                {{#if direccion}}{{direccion.descripcion}}{{/if}}
+              </textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">
+              {{#if direccion}}Actualizar{{else}}Guardar{{/if}} Dirección
+            </button>
+            <a href="/cliente/direcciones" class="btn btn-secondary">Cancelar</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="text-center mt-4">
+  <a href="/cliente/home" class="btn btn-secondary">
+    <i class="fas fa-arrow-left mr-2"></i> Volver al inicio
+  </a>
+</div>

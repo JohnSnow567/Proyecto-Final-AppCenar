@@ -1,0 +1,159 @@
+<div class="container mt-4">
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h4>Mi Perfil</h4>
+        </div>
+        <div class="card-body text-center">
+          <img src="{{#if usuario.foto}}
+          /images/uploads/perfiles/{{usuario.foto}}{{else}}/img/default-profile.png{{/if}}" 
+               class="rounded-circle mb-3" width="150" alt="Foto de perfil">
+          <h5>{{usuario.nombre}} {{usuario.apellido}}</h5>
+          <p class="text-muted">{{usuario.correo}}</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header">
+          <h4>Editar Perfil</h4>
+        </div>
+        <div class="card-body">
+          <form id="perfilForm" action="/cliente/perfil" method="POST" enctype="multipart/form-data">
+            <div class="form-row">
+              <div class="form-group col-md-6">
+                <label for="nombre">Nombre</label>
+                <input type="text" class="form-control" id="nombre" name="nombre" value="{{usuario.nombre}}" required>
+              </div>
+              <div class="form-group col-md-6">
+                <label for="apellido">Apellido</label>
+                <input type="text" class="form-control" id="apellido" name="apellido" value="{{usuario.apellido}}" required>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="telefono">Teléfono</label>
+              <input type="tel" class="form-control" id="telefono" name="telefono" value="{{usuario.telefono}}" required>
+            </div>
+            <div class="form-group">
+              <label for="foto">Foto de perfil</label>
+              <div class="custom-file">
+                <input type="file" class="custom-file-input" id="foto" name="foto">
+                <label class="custom-file-label" for="foto">Elegir archivo</label>
+              </div>
+            </div>
+            <hr>
+            <h5>Cambiar Contraseña</h5>
+            <div class="form-group">
+              <label for="password">Nueva Contraseña</label>
+              <input type="password" class="form-control" id="password" name="password">
+            </div>
+            <div class="form-group">
+              <label for="confirmPassword">Confirmar Contraseña</label>
+              <input type="password" class="form-control" id="confirmPassword" name="confirmPassword">
+            </div>
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="text-center mt-4">
+  <a href="/cliente/home" class="btn btn-secondary">
+    <i class="fas fa-arrow-left mr-2"></i> Volver al inicio
+  </a>
+</div>
+
+<script>
+// Validación del formulario
+document.addEventListener('DOMContentLoaded', function() {
+  // Mostrar nombre de archivo
+  document.querySelector('.custom-file-input').addEventListener('change', function(e) {
+    const fileName = e.target.files[0] ? e.target.files[0].name : "Elegir archivo";
+    this.nextElementSibling.textContent = fileName;
+    
+    // Validar tipo de archivo
+    const file = e.target.files[0];
+    if (file) {
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      if (!validTypes.includes(file.type)) {
+        this.classList.add('is-invalid');
+        this.value = '';
+        this.nextElementSibling.textContent = "Elegir archivo";
+      } else {
+        this.classList.remove('is-invalid');
+      }
+    }
+  });
+
+  // Validar formato de teléfono
+  const telefonoInput = document.getElementById('telefono');
+  telefonoInput.addEventListener('input', function(e) {
+    this.value = this.value.replace(/[^0-9-]/g, '');
+  });
+
+  // Validar coincidencia de contraseñas
+  const password = document.getElementById('password');
+  const confirmPassword = document.getElementById('confirmPassword');
+  
+  function validatePassword() {
+    if (password.value !== confirmPassword.value) {
+      confirmPassword.setCustomValidity("Las contraseñas no coinciden");
+      confirmPassword.classList.add('is-invalid');
+    } else {
+      confirmPassword.setCustomValidity('');
+      confirmPassword.classList.remove('is-invalid');
+    }
+  }
+  
+  password.addEventListener('change', validatePassword);
+  confirmPassword.addEventListener('keyup', validatePassword);
+
+  // Validación antes de enviar
+  const form = document.getElementById('perfilForm');
+  form.addEventListener('submit', function(event) {
+    if (!form.checkValidity()) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    form.classList.add('was-validated');
+  }, false);
+  
+  // Mostrar requisitos de contraseña al enfocar
+  password.addEventListener('focus', function() {
+    const requirements = document.createElement('div');
+    requirements.id = 'passwordRequirements';
+    requirements.innerHTML = `
+      <div class="alert alert-info small mt-2">
+        <strong>Requisitos de contraseña:</strong>
+        <ul class="mb-0">
+          <li id="length" class="text-danger">Mínimo 8 caracteres</li>
+          <li id="capital" class="text-danger">Al menos una mayúscula</li>
+          <li id="number" class="text-danger">Al menos un número</li>
+        </ul>
+      </div>
+    `;
+    this.parentNode.appendChild(requirements);
+    
+    this.addEventListener('input', function() {
+      const lengthValid = this.value.length >= 8;
+      const capitalValid = /[A-Z]/.test(this.value);
+      const numberValid = /[0-9]/.test(this.value);
+      
+      document.getElementById('length').className = lengthValid ? 'text-success' : 'text-danger';
+      document.getElementById('capital').className = capitalValid ? 'text-success' : 'text-danger';
+      document.getElementById('number').className = numberValid ? 'text-success' : 'text-danger';
+    });
+  });
+  
+  password.addEventListener('blur', function() {
+    const requirements = document.getElementById('passwordRequirements');
+    if (requirements) {
+      requirements.remove();
+    }
+  });
+});
+</script>

@@ -1,0 +1,149 @@
+<div class="container mt-4">
+  <div class="row">
+    <!-- === CATÁLOGO (8 cols) === -->
+    <div class="col-md-8">
+      {{!-- Iteramos sobre cada categoría --}}
+      {{#each categorias}}
+        <div class="mb-4">
+          <h4 class="border-bottom pb-2">{{this.nombre}}</h4>
+          <div class="row">
+            {{!-- Ahora this.productos contiene solo los productos de esta categoría --}}
+            {{#each this.productos}}
+              <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                  <img src="/images/uploads/productos/{{this.imagen}}"
+                       class="card-img-top"
+                       alt="{{this.nombre}}"
+                       style="height: 150px; width: 100%; object-fit: contain;">
+                  <div class="card-body">
+                    <h5 class="card-title">{{this.nombre}}</h5>
+                    <p class="card-text small text-muted">{{this.descripcion}}</p>
+                    <p class="h5 text-primary">RD$ {{this.precio}}</p>
+                  </div>
+                  <div class="card-footer bg-white">
+                    {{!-- Deshabilitar si ya está en el carrito --}}
+                    {{#if (includes @root.carritoIds this.id)}}
+                      <button class="btn btn-outline-secondary btn-block" disabled>
+                        Agregado
+                      </button>
+                    {{else}}
+                      <form action="/cliente/carrito/agregar/{{this.id}}" method="POST">
+                        <input type="hidden" name="cantidad" value="1">
+                        <button type="submit" class="btn btn-primary btn-block">
+                          <i class="fas fa-cart-plus"></i> Agregar
+                        </button>
+                      </form>
+                    {{/if}}
+                  </div>
+                </div>
+              </div>
+            {{/each}}
+          </div>
+        </div>
+      {{/each}}
+
+      <div class="text-center mt-4">
+        <a href="/comercio/home" class="btn btn-secondary">
+          <i class="fas fa-arrow-left mr-2"></i> Volver al inicio
+        </a>
+      </div>
+    </div>
+
+    <!-- === MI PEDIDO (4 cols) === -->
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header"><h5>Mi pedido</h5></div>
+        <ul class="list-group list-group-flush">
+          {{#if carrito.length}}
+            {{#each carrito}}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>{{this.producto.nombre}}</span>
+                <div>
+                  <span class="me-2">x{{this.cantidad}}</span>
+                  <span>RD$ {{multiply this.producto.precio this.cantidad}}</span>
+                  <form action="/cliente/carrito/remover/{{this.producto.id}}"
+                        method="POST"
+                        class="d-inline ml-2">
+                    <button class="btn btn-sm btn-outline-danger">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </li>
+            {{/each}}
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>Subtotal</strong><span>RD$ {{subtotal}}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <strong>ITBIS ({{config.itbis}}%)</strong><span>RD$ {{itbis}}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between font-weight-bold">
+              <strong>Total</strong><span>RD$ {{total}}</span>
+            </li>
+          {{else}}
+            <li class="list-group-item">Tu pedido está vacío.</li>
+          {{/if}}
+        </ul>
+      </div>
+
+      {{!-- Botón Continuar --}}
+      {{#if carrito.length}}
+        <form action="/cliente/pedidos/confirmar" method="GET">
+          <button type="submit" class="btn btn-success btn-block">
+            <i class="fas fa-arrow-right mr-2"></i>Continuar
+          </button>
+        </form>
+      {{/if}}
+    </div>
+  </div>
+</div>
+
+
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1000">
+  <div id="cartToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        <i class="fas fa-check-circle me-2"></i>
+        <span id="toastMessage">Producto agregado al carrito</span>
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Notificación al agregar al carrito
+document.addEventListener('DOMContentLoaded', function() {
+  const cartToast = new bootstrap.Toast(document.getElementById('cartToast'));
+  
+  document.querySelectorAll('form[action^="/cliente/carrito/agregar"]').forEach(form => {
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      try {
+        const response = await fetch(this.action, {
+          method: 'POST',
+          body: new FormData(this)
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          document.getElementById('toastMessage').textContent = data.message || 'Producto agregado al carrito';
+          cartToast.show();
+          
+          // Actualizar contador en navbar si existe
+          const cartCounter = document.querySelector('.cart-counter');
+          if (cartCounter) {
+            const response = await fetch('/cliente/carrito/count');
+            const { count } = await response.json();
+            cartCounter.textContent = count;
+          }
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    });
+  });
+});
+</script>
